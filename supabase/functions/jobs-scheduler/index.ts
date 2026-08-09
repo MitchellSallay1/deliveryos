@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { carrierAuthErrorResponse, verifySharedSecret } from "../_shared/carrier-auth.ts";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -11,13 +12,11 @@ Deno.serve(async (req) => {
     return new Response("ok", { headers: cors });
   }
 
-  const secret = Deno.env.get("CRON_SECRET");
-  if (secret) {
-    const provided = req.headers.get("x-cron-secret");
-    if (provided !== secret) {
-      return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401, headers: cors });
-    }
+  const auth = verifySharedSecret(req, "CRON_SECRET", "x-cron-secret");
+  if (!auth.ok) {
+    return carrierAuthErrorResponse(auth, cors);
   }
+  const secret = Deno.env.get("CRON_SECRET")!;
 
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL")!,
@@ -35,8 +34,8 @@ Deno.serve(async (req) => {
   const dispatchHeaders: Record<string, string> = {
     Authorization: `Bearer ${serviceKey}`,
     "Content-Type": "application/json",
+    "x-cron-secret": secret,
   };
-  if (secret) dispatchHeaders["x-cron-secret"] = secret;
 
   const [smsRes, webhookRes, emailRes] = await Promise.all([
     fetch(`${base}/functions/v1/sms-dispatch`, { method: "POST", headers: dispatchHeaders }),

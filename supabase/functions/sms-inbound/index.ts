@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { carrierAuthErrorResponse, verifySharedSecret } from "../_shared/carrier-auth.ts";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -12,12 +13,9 @@ Deno.serve(async (req) => {
     return new Response("ok", { headers: cors });
   }
 
-  const secret = Deno.env.get("SMS_WEBHOOK_SECRET");
-  if (secret && req.headers.get("x-sms-secret") !== secret) {
-    return new Response(JSON.stringify({ error: "unauthorized" }), {
-      status: 401,
-      headers: { ...cors, "Content-Type": "application/json" },
-    });
+  const auth = verifySharedSecret(req, "SMS_WEBHOOK_SECRET", "x-sms-secret");
+  if (!auth.ok) {
+    return carrierAuthErrorResponse(auth, cors);
   }
 
   let from = "";

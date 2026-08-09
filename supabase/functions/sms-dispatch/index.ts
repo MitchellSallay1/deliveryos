@@ -1,14 +1,21 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { carrierAuthErrorResponse, verifySharedSecret } from "../_shared/carrier-auth.ts";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-cron-secret",
 };
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: cors });
+  }
+
+  // Internal-only: invoked by jobs-scheduler, which forwards CRON_SECRET.
+  const auth = verifySharedSecret(req, "CRON_SECRET", "x-cron-secret");
+  if (!auth.ok) {
+    return carrierAuthErrorResponse(auth, cors);
   }
 
   const provider = Deno.env.get("SMS_PROVIDER") ?? "stub";
