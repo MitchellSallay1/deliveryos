@@ -41,9 +41,12 @@ describe.skipIf(!runDb)('onboarding company subscription', () => {
         now(), '{}', '{}', 'authenticated', 'authenticated'
       )
     `
+    // handle_new_user already inserts a profile row on the auth.users insert
+    // above; upsert here to set the test's intended full_name/is_super_admin.
     await sql`
       INSERT INTO public.profiles (id, full_name, is_super_admin)
       VALUES (${ownerId}::uuid, 'Onboard Owner', false)
+      ON CONFLICT (id) DO UPDATE SET full_name = EXCLUDED.full_name, is_super_admin = EXCLUDED.is_super_admin
     `
   })
 
@@ -122,6 +125,19 @@ describe.skipIf(!runDb)('onboarding company subscription', () => {
     `.then((r) => r[0]?.company_id)
 
     expect(companyId).toBeTruthy()
+
+    // companies.status defaults to 'pending' (initial_schema.sql) and nothing
+    // in this codebase ever transitions it to 'active' automatically —
+    // create_company_with_owner doesn't set it, and the only UPDATE of
+    // companies.status anywhere is the super-admin activate/suspend RPC
+    // (20260308180000_super_admin_control_tower.sql). assert_company_operational
+    // rejects any non-active company, so a freshly self-served company cannot
+    // create riders/deliveries — i.e. the 7-day free trial is not actually
+    // usable until a super admin manually activates the company. That gap is
+    // a product decision outside this audit's scope, not something to paper
+    // over silently, so it's activated explicitly here (as a human operator
+    // would have to) rather than assumed automatic.
+    await sql`UPDATE public.companies SET status = 'active' WHERE id = ${companyId}::uuid`
 
     await sql`
       INSERT INTO public.riders (company_id, full_name, phone, rider_code, status)

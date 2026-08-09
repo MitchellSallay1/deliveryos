@@ -6,18 +6,18 @@ BEGIN;
 
 CREATE EXTENSION IF NOT EXISTS pgtap;
 
-SELECT plan(24);
+SELECT plan(19);
 
 -- Schema objects
-SELECT has_table('public', 'company_subscriptions');
-SELECT has_table('public', 'invoices');
-SELECT has_table('public', 'subscription_billing_payments');
-SELECT has_table('public', 'audit_logs');
+SELECT has_table('public'::name, 'company_subscriptions'::name);
+SELECT has_table('public'::name, 'invoices'::name);
+SELECT has_table('public'::name, 'subscription_billing_payments'::name);
+SELECT has_table('public'::name, 'audit_logs'::name);
 
 SELECT has_function('public', 'can_use_feature', ARRAY['uuid', 'text']);
 SELECT has_function('public', 'get_company_usage', ARRAY['uuid']);
 SELECT has_function('public', 'get_delivery_tracking', ARRAY['text']);
-SELECT has_function('public', 'admin_record_billing_payment');
+SELECT has_function('public'::name, 'admin_record_billing_payment'::name);
 SELECT has_function('public', 'log_audit_event', ARRAY['uuid', 'text', 'text', 'uuid', 'jsonb']);
 
 -- RLS enabled on billing tables
@@ -62,15 +62,22 @@ SELECT ok(
   'starter/business/enterprise plans exist'
 );
 
--- Public tracking must not expose raw full addresses in function definition
+-- Public tracking must not expose raw full addresses in function definition.
+-- get_delivery_tracking(text) is now a thin wrapper around
+-- get_public_delivery_tracking(text,text) (see 20260307210100_..._functions.sql
+-- and 20260307240100_phase8_production_functions.sql) — the address
+-- generalization actually happens in the latter, so that's what these check.
+-- The function legitimately references `v_d.pickup_address` as INPUT to
+-- generalize_address(); what must never appear is 'pickup_address' used as a
+-- returned JSONB key (i.e. passed straight through instead of generalized).
 SELECT ok(
-  position('pickup_address' IN pg_get_functiondef('public.get_delivery_tracking(text)'::regprocedure)) = 0,
-  'get_delivery_tracking should not return pickup_address column'
+  position('''pickup_address''' IN pg_get_functiondef('public.get_public_delivery_tracking(text,text)'::regprocedure)) = 0,
+  'get_public_delivery_tracking should not return raw pickup_address column'
 );
 
 SELECT ok(
-  position('generalize_address' IN pg_get_functiondef('public.get_delivery_tracking(text)'::regprocedure)) > 0,
-  'get_delivery_tracking uses generalize_address'
+  position('generalize_address' IN pg_get_functiondef('public.get_public_delivery_tracking(text,text)'::regprocedure)) > 0,
+  'get_public_delivery_tracking uses generalize_address'
 );
 
 -- Feature access denies when no active subscription row

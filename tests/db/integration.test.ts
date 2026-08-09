@@ -46,17 +46,20 @@ describe.skipIf(!runDb)('database integration (RLS & billing)', () => {
         (${ownerA}::uuid, ${`owner-a-${ownerA.slice(0, 8)}@test.local`}, crypt('testpass', gen_salt('bf')), now(), '{}', '{}', 'authenticated', 'authenticated'),
         (${ownerB}::uuid, ${`owner-b-${ownerB.slice(0, 8)}@test.local`}, crypt('testpass', gen_salt('bf')), now(), '{}', '{}', 'authenticated', 'authenticated')
     `
+    // handle_new_user already inserts a profile row on the auth.users insert
+    // above; upsert here to set the test's intended full_name/is_super_admin.
     await sql`
       INSERT INTO public.profiles (id, full_name, is_super_admin)
       VALUES
         (${ownerA}::uuid, 'Owner A', false),
         (${ownerB}::uuid, 'Owner B', false)
+      ON CONFLICT (id) DO UPDATE SET full_name = EXCLUDED.full_name, is_super_admin = EXCLUDED.is_super_admin
     `
     await sql`
-      INSERT INTO public.companies (id, name, email, phone, status, subscription_id)
+      INSERT INTO public.companies (id, name, slug, email, phone, status, subscription_id)
       VALUES
-        (${companyA}::uuid, 'Company A', 'a@test.local', '+2310000001', 'active', ${planStarterId}::uuid),
-        (${companyB}::uuid, 'Company B', 'b@test.local', '+2310000002', 'active', ${planStarterId}::uuid)
+        (${companyA}::uuid, 'Company A', ${'company-a-' + companyA.slice(0, 8)}, 'a@test.local', '+2310000001', 'active', ${planStarterId}::uuid),
+        (${companyB}::uuid, 'Company B', ${'company-b-' + companyB.slice(0, 8)}, 'b@test.local', '+2310000002', 'active', ${planStarterId}::uuid)
     `
     await sql`
       INSERT INTO public.company_users (company_id, user_id, role, is_active)
@@ -149,13 +152,42 @@ describe.skipIf(!runDb)('database integration (RLS & billing)', () => {
   })
 
   it('authenticated cannot UPDATE payments directly', async () => {
-    await expect(
-      asUser(ownerA, async (tx) => {
-        await tx`
-          UPDATE public.payments SET status = 'deposited' WHERE false
-        `
-      }),
-    ).rejects.toThrow()
+    // payments has no UPDATE policy at all (dropped in
+    // 20260307190000_phase3_hardening.sql — mutations only via
+    // mark_payment_deposited/mark_payment_reconciled). With no matching
+    // policy, RLS filters out every row for that command rather than
+    // raising an error, so an UPDATE against a REAL row must silently
+    // affect zero rows and leave the value unchanged — a `WHERE false`
+    // no-op doesn't actually exercise this (it "succeeds" either way),
+    // which is why this test previously asserted the wrong thing.
+    const [delivery] = await sql<{ id: string }[]>`
+      INSERT INTO public.deliveries (
+        company_id, tracking_code, pickup_business_name, pickup_address,
+        customer_name, customer_phone, destination_address, status
+      ) VALUES (
+        ${companyA}::uuid, ${'TRK-PAY-' + companyA.slice(0, 8)}, 'Shop', 'Addr A',
+        'Cust', '+231770000555', 'Addr B', 'pending'
+      ) RETURNING id
+    `
+    const [payment] = await sql<{ id: string }[]>`
+      INSERT INTO public.payments (company_id, delivery_id, amount_lrd_cents, status)
+      VALUES (${companyA}::uuid, ${delivery!.id}::uuid, 10000, 'pending')
+      RETURNING id
+    `
+
+    await asUser(ownerA, async (tx) => {
+      await tx`
+        UPDATE public.payments SET status = 'deposited' WHERE id = ${payment!.id}::uuid
+      `
+    })
+
+    const [row] = await sql<{ status: string }[]>`
+      SELECT status FROM public.payments WHERE id = ${payment!.id}::uuid
+    `
+    expect(row?.status).toBe('pending')
+
+    await sql`DELETE FROM public.payments WHERE id = ${payment!.id}::uuid`
+    await sql`DELETE FROM public.deliveries WHERE id = ${delivery!.id}::uuid`
   })
 
   it('public tracking RPC is callable without auth', async () => {

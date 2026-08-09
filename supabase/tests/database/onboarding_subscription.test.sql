@@ -1,5 +1,5 @@
 BEGIN;
-SELECT plan(12);
+SELECT plan(8);
 
 SELECT has_function('public', 'ensure_initial_company_subscription', ARRAY['uuid']);
 SELECT has_function('public', 'expire_elapsed_company_trials', ARRAY['uuid']);

@@ -48,16 +48,19 @@ describe.skipIf(!runDb)('RLS security suite', () => {
         (${ownerB}::uuid, ${`b-${ownerB.slice(0, 6)}@t.local`}, crypt('x', gen_salt('bf')), now(), 'authenticated', 'authenticated'),
         (${merchantOwner}::uuid, ${`m-${merchantOwner.slice(0, 6)}@t.local`}, crypt('x', gen_salt('bf')), now(), 'authenticated', 'authenticated')
     `
+    // handle_new_user already inserts a profile row on the auth.users insert
+    // above; upsert here to set the test's intended full_name.
     await sql`
       INSERT INTO public.profiles (id, full_name) VALUES
         (${ownerA}::uuid, 'A'), (${ownerB}::uuid, 'B'), (${merchantOwner}::uuid, 'M')
+      ON CONFLICT (id) DO UPDATE SET full_name = EXCLUDED.full_name
     `
     await sql`
-      INSERT INTO public.companies (id, name, email, phone, status, subscription_id, business_type)
+      INSERT INTO public.companies (id, name, slug, email, phone, status, subscription_id, business_type)
       VALUES
-        (${companyA}::uuid, 'Co A', 'a@t.local', '+1', 'active', ${planId}::uuid, 'logistics_provider'),
-        (${companyB}::uuid, 'Co B', 'b@t.local', '+2', 'active', ${planId}::uuid, 'logistics_provider'),
-        (${merchantA}::uuid, 'Merchant A', 'm@t.local', '+3', 'active', ${planId}::uuid, 'merchant')
+        (${companyA}::uuid, 'Co A', ${'co-a-' + companyA.slice(0, 8)}, 'a@t.local', '+1', 'active', ${planId}::uuid, 'logistics_provider'),
+        (${companyB}::uuid, 'Co B', ${'co-b-' + companyB.slice(0, 8)}, 'b@t.local', '+2', 'active', ${planId}::uuid, 'logistics_provider'),
+        (${merchantA}::uuid, 'Merchant A', ${'merchant-a-' + merchantA.slice(0, 8)}, 'm@t.local', '+3', 'active', ${planId}::uuid, 'merchant')
     `
     await sql`
       INSERT INTO public.company_users (company_id, user_id, role, is_active) VALUES

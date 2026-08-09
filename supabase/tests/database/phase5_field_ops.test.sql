@@ -3,17 +3,17 @@ BEGIN;
 CREATE EXTENSION IF NOT EXISTS pgtap;
 SELECT plan(12);
 
-SELECT has_table('public', 'rider_locations');
-SELECT has_table('public', 'delivery_zones');
-SELECT has_table('public', 'api_keys');
-SELECT has_table('public', 'webhook_endpoints');
-SELECT has_table('public', 'webhook_deliveries');
-SELECT has_table('public', 'sms_outbox');
+SELECT has_table('public'::name, 'rider_locations'::name);
+SELECT has_table('public'::name, 'delivery_zones'::name);
+SELECT has_table('public'::name, 'api_keys'::name);
+SELECT has_table('public'::name, 'webhook_endpoints'::name);
+SELECT has_table('public'::name, 'webhook_deliveries'::name);
+SELECT has_table('public'::name, 'sms_outbox'::name);
 
-SELECT has_function('public', 'record_rider_location');
-SELECT has_function('public', 'get_public_delivery_tracking');
-SELECT has_function('public', 'verify_api_key');
-SELECT has_function('public', 'get_operational_analytics');
+SELECT has_function('public'::name, 'record_rider_location'::name);
+SELECT has_function('public'::name, 'get_public_delivery_tracking'::name);
+SELECT has_function('public'::name, 'verify_api_key'::name);
+SELECT has_function('public'::name, 'get_operational_analytics'::name);
 
 SELECT ok(
   NOT has_table_privilege('authenticated', 'public.api_keys', 'INSERT'),

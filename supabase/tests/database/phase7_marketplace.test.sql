@@ -1,14 +1,14 @@
 BEGIN;
-SELECT plan(17);
+SELECT plan(16);
 
-SELECT has_type('public', 'company_business_type');
-SELECT has_type('public', 'delivery_request_status');
-SELECT has_type('public', 'delivery_offer_status');
+SELECT has_type('public'::name, 'company_business_type'::name);
+SELECT has_type('public'::name, 'delivery_request_status'::name);
+SELECT has_type('public'::name, 'delivery_offer_status'::name);
 
-SELECT has_table('public', 'delivery_requests');
-SELECT has_table('public', 'delivery_offers');
-SELECT has_table('public', 'marketplace_transactions');
-SELECT has_table('public', 'provider_marketplace_profiles');
+SELECT has_table('public'::name, 'delivery_requests'::name);
+SELECT has_table('public'::name, 'delivery_offers'::name);
+SELECT has_table('public'::name, 'marketplace_transactions'::name);
+SELECT has_table('public'::name, 'provider_marketplace_profiles'::name);
 
 SELECT has_function('public', 'create_delivery_request', ARRAY['jsonb']);
 SELECT has_function('public', 'publish_delivery_request', ARRAY['uuid', 'uuid']);
