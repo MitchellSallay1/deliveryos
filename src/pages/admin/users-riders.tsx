@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase/client'
+import { sanitizeIlikeSearchTerm } from '@/lib/postgrest-search'
 import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
@@ -14,7 +15,7 @@ async function listRiders(search: string, page: number) {
     .select('id, full_name, rider_code, phone, status, company_id', { count: 'exact' })
     .order('created_at', { ascending: false })
     .range((page - 1) * PAGE, page * PAGE - 1)
-  const s = search.trim()
+  const s = sanitizeIlikeSearchTerm(search.trim())
   if (s) {
     q = q.or(`rider_code.ilike.%${s}%,phone.ilike.%${s}%,full_name.ilike.%${s}%`)
   }
@@ -81,7 +82,7 @@ async function listUsers(search: string, page: number) {
     .select('id, full_name, phone, is_super_admin, created_at', { count: 'exact' })
     .order('created_at', { ascending: false })
     .range((page - 1) * PAGE, page * PAGE - 1)
-  const s = search.trim()
+  const s = sanitizeIlikeSearchTerm(search.trim())
   if (s) q = q.or(`phone.ilike.%${s}%,full_name.ilike.%${s}%`)
   const { data, error, count } = await q
   if (error) throw error

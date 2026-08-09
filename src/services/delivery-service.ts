@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase/client'
+import { sanitizeIlikeSearchTerm } from '@/lib/postgrest-search'
 import type {
   CustomerRow,
   DeliveryListParams,
@@ -27,7 +28,7 @@ export async function listDeliveries(
     .eq('company_id', companyId)
     .order('created_at', { ascending: false })
 
-  const search = params.search?.trim()
+  const search = sanitizeIlikeSearchTerm(params.search?.trim() ?? '')
   if (search) {
     query = query.or(
       `tracking_code.ilike.%${search}%,customer_name.ilike.%${search}%,customer_phone.ilike.%${search}%`,
