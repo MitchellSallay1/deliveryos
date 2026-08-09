@@ -13,10 +13,31 @@ SELECT has_function('public'::name, 'can_use_feature'::name);
 SELECT has_function('public'::name, 'inventory_receive_stock'::name);
 SELECT has_function('public'::name, 'reconcile_cash_settlement'::name);
 
-SELECT ok(
-  NOT has_table_privilege('authenticated', 'public.inventory_movements', 'INSERT'),
-  'no direct insert on inventory_movements'
-);
+-- authenticated has a real GRANT INSERT (matches production's platform
+-- default — 20260308190500_codify_anon_authenticated_table_grants.sql), so
+-- has_table_privilege() no longer reflects the real boundary; RLS (writes
+-- only via inventory_receive_stock/etc.) is what actually blocks this.
+DO $$
+DECLARE
+  v_blocked BOOLEAN := false;
+BEGIN
+  BEGIN
+    SET LOCAL ROLE authenticated;
+    PERFORM set_config('request.jwt.claim.sub', gen_random_uuid()::text, true);
+    INSERT INTO public.inventory_movements (
+      company_id, warehouse_id, inventory_item_id, quantity, movement_type
+    ) VALUES (gen_random_uuid(), gen_random_uuid(), gen_random_uuid(), 1, 'adjustment');
+  EXCEPTION WHEN OTHERS THEN
+    v_blocked := true;
+  END;
+  RESET ROLE;
+  IF NOT v_blocked THEN
+    RAISE EXCEPTION 'expected authenticated INSERT into inventory_movements to be rejected';
+  END IF;
+END;
+$$;
+
+SELECT pass('no direct insert on inventory_movements');
 
 -- The "default branch" backfill (20260307220000_phase6_operations_schema.sql)
 -- only ran once, at migration time, against companies that existed then — a

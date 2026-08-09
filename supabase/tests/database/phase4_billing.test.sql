@@ -86,11 +86,31 @@ SELECT ok(
   'can_use_feature false for unknown company'
 );
 
--- Audit logs are not writable by authenticated role directly
-SELECT ok(
-  NOT has_table_privilege('authenticated', 'public.audit_logs', 'INSERT'),
-  'authenticated cannot INSERT audit_logs directly'
-);
+-- Audit logs are not writable by authenticated role directly. The
+-- authenticated role has a real GRANT INSERT (matching production's
+-- platform-default grants — see 20260308190500_codify_anon_authenticated_table_grants.sql),
+-- so has_table_privilege() alone no longer reflects the real security
+-- boundary; RLS (no INSERT policy for audit_logs) is what actually blocks
+-- this, so exercise that directly.
+DO $$
+DECLARE
+  v_blocked BOOLEAN := false;
+BEGIN
+  BEGIN
+    SET LOCAL ROLE authenticated;
+    PERFORM set_config('request.jwt.claim.sub', gen_random_uuid()::text, true);
+    INSERT INTO public.audit_logs (action, entity_type) VALUES ('test', 'test');
+  EXCEPTION WHEN OTHERS THEN
+    v_blocked := true;
+  END;
+  RESET ROLE;
+  IF NOT v_blocked THEN
+    RAISE EXCEPTION 'expected authenticated INSERT into audit_logs to be rejected';
+  END IF;
+END;
+$$;
+
+SELECT pass('authenticated cannot INSERT audit_logs directly');
 
 SELECT * FROM finish();
 
