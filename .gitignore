@@ -1,0 +1,17 @@
+.env
+.env.local
+.env.*.local
+node_modules/
+dist/
+backend/bin/
+frontend/dist/
+frontend/node_modules/
+.DS_Store
+tsconfig.tsbuildinfo
+
+# Supabase CLI local state (project ref, local DB, generated certs) — never commit
+supabase/.temp/
+supabase/.branches/
+
+# Claude Code: per-developer local permissions, not shared team config
+.claude/settings.local.json

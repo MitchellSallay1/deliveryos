@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  app:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+
+  database:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - run: npm ci
+      - name: Supabase CLI version
+        run: supabase --version | tee supabase-cli-version.txt
+      - name: Start Supabase and reset DB
+        run: |
+          supabase start
+          supabase db reset --no-seed
+      - name: Vitest DB integration (RLS)
+        run: npm run test:db
+        env:
+          RUN_DB_TESTS: "1"
+          DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+      - name: pgTAP suite
+        run: supabase test db
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: db-test-artifacts
+          path: supabase-cli-version.txt

@@ -1,0 +1,175 @@
+/* DeliveryOS public marketing — warm enterprise art direction */
+
+.mkt-root {
+  --mkt-bg: #faf9f7;
+  --mkt-bg-soft: #f3f2ef;
+  --mkt-ink: #0c0c0d;
+  --mkt-ink-muted: #52525b;
+  --mkt-border: rgb(12 12 13 / 0.08);
+  --mkt-accent: var(--color-accent);
+  --mkt-display: clamp(2.5rem, 5vw + 1rem, 4.25rem);
+  --mkt-lead: clamp(1.05rem, 0.5vw + 1rem, 1.25rem);
+  background: var(--mkt-bg);
+  color: var(--mkt-ink);
+}
+
+.mkt-display {
+  font-size: var(--mkt-display);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  font-weight: 600;
+}
+
+.mkt-lead {
+  font-size: var(--mkt-lead);
+  line-height: 1.55;
+  color: var(--mkt-ink-muted);
+}
+
+.mkt-section-dark {
+  background: var(--mkt-ink);
+  color: #fafafa;
+}
+
+.mkt-section-soft {
+  background: var(--mkt-bg-soft);
+}
+
+.mkt-grid-bg {
+  background-image:
+    linear-gradient(to right, rgb(255 255 255 / 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(255 255 255 / 0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+.mkt-glow {
+  box-shadow:
+    0 0 0 1px rgb(255 255 255 / 0.06),
+    0 24px 80px rgb(0 0 0 / 0.35),
+    0 0 120px rgb(255 203 5 / 0.08);
+}
+
+.mkt-panel {
+  border: 1px solid var(--mkt-border);
+  background: rgb(255 255 255 / 0.92);
+  backdrop-filter: blur(12px);
+  border-radius: 1rem;
+}
+
+.mkt-reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition:
+    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.mkt-reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mkt-reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .mkt-animate-pulse-soft,
+  .mkt-animate-float {
+    animation: none !important;
+  }
+}
+
+.mkt-hero-headline {
+  font-size: clamp(2.75rem, 5vw + 1.5rem, 6rem);
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+  font-weight: 600;
+}
+
+.mkt-product-tour-headline {
+  font-size: clamp(2.25rem, 3.5vw + 1.25rem, 4.25rem);
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+  font-weight: 600;
+}
+
+.mkt-hero-float {
+  animation: mkt-float 5s ease-in-out infinite;
+}
+
+.mkt-hero-notify {
+  animation: mkt-notify-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes mkt-notify-in {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.mkt-route-pulse {
+  animation: mkt-route 3s ease-in-out infinite;
+}
+
+@keyframes mkt-route {
+  0%,
+  100% {
+    stroke-opacity: 1;
+  }
+  50% {
+    stroke-opacity: 0.45;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mkt-hero-notify,
+  .mkt-hero-float,
+  .mkt-route-pulse {
+    animation: none !important;
+  }
+}
+
+@keyframes mkt-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.mkt-animate-pulse-soft {
+  animation: mkt-pulse-soft 2.5s ease-in-out infinite;
+}
+
+@keyframes mkt-pulse-soft {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+.mkt-scroll-x {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding-bottom: 0.5rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mkt-scroll-x > * {
+  scroll-snap-align: start;
+  flex: 0 0 min(85vw, 320px);
+}

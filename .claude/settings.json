@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(awk -F: '{s+=$2} END {print \"total function defs:\", s}')",
+      "Bash(npm audit *)",
+      "Bash(npm run *)"
+    ]
+  }
+}

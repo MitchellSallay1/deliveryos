@@ -1,0 +1,59 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  --color-background: #f4f4f5;
+  --color-foreground: #0a0a0a;
+  --color-card: #ffffff;
+  --color-primary: #000000;
+  --color-primary-foreground: #ffffff;
+  --color-accent: #ffcb05;
+  --color-muted: #71717a;
+  --color-border: #e4e4e7;
+  --color-sidebar: #0a0a0a;
+  --color-sidebar-foreground: #fafafa;
+  --color-sidebar-accent: #ffcb05;
+  --color-success: #16a34a;
+  --color-warning: #d97706;
+  --color-danger: #dc2626;
+  --color-info: #2563eb;
+  --radius-lg: 0.75rem;
+  --radius-md: 0.5rem;
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.04), 0 4px 12px rgb(0 0 0 / 0.04);
+}
+
+@layer base {
+  * {
+    @apply border-[var(--color-border)];
+  }
+  body {
+    @apply bg-[var(--color-background)] text-[var(--color-foreground)] font-sans antialiased;
+  }
+  h1,
+  h2,
+  h3 {
+    @apply tracking-tight;
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-[var(--color-accent)];
+  }
+}
+
+@layer utilities {
+  .animate-fade-in {
+    animation: fade-in 0.2s ease-out;
+  }
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .surface-card {
+    box-shadow: var(--shadow-card);
+  }
+}
