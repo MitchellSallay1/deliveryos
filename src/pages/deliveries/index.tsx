@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useEffect, useMemo, useState } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
@@ -45,6 +45,22 @@ export function DeliveriesPage() {
   const [searchDraft, setSearchDraft] = useState('')
   const [view, setView] = useState<'board' | 'table'>('board')
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  // Deep-link support: dashboard "recent deliveries" links to
+  // /deliveries?open=<id>, opening the same detail drawer used everywhere
+  // else on this page rather than a separate modal.
+  useEffect(() => {
+    const openId = searchParams.get('open')
+    if (openId) {
+      setSelectedId(openId)
+      const next = new URLSearchParams(searchParams)
+      next.delete('open')
+      setSearchParams(next, { replace: true })
+    }
+    // Intentionally run once on mount only — this is a one-shot deep-link
+    // consumer, not a live sync with searchParams.
+  }, [])
 
   const pageSize = view === 'board' ? 100 : 25
   const { data, isLoading, error } = useDeliveries(companyId, { page, pageSize, search })

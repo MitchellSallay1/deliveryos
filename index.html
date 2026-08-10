@@ -11,7 +11,10 @@
       rel="stylesheet"
     />
     <meta name="theme-color" content="#FFCB05" />
-    <link rel="manifest" href="/manifest.webmanifest" />
+    <!-- vite-plugin-pwa injects the correct <link rel="manifest"> itself
+         (with devOptions.enabled, this also works in `vite dev`) — a
+         second hardcoded tag here was redundant and, in dev mode, still
+         pointed at a path the dev server didn't serve. -->
     <meta name="description" content="DeliveryOS — the operating system for modern delivery businesses. Dispatch, riders, tracking, COD, and operations in one platform." />
     <meta property="og:type" content="website" />
     <meta property="og:title" content="DeliveryOS — Deliver smarter" />

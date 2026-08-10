@@ -552,6 +552,10 @@ export interface Database {
         Args: { p_company_id: string; p_period?: string }
         Returns: Json
       }
+      get_company_delivery_trend: {
+        Args: { p_company_id: string; p_days?: number }
+        Returns: Json
+      }
       create_company_invitation: {
         Args: {
           p_company_id: string

@@ -11,6 +11,16 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg'],
+      // Without this, vite-plugin-pwa only generates/serves the manifest
+      // and service worker for a production build. In `vite dev`, the
+      // manifest link in index.html then resolves via Vite's SPA fallback
+      // to index.html itself (text/html), which is exactly what produced
+      // "Manifest: Line: 1, column: 1, Syntax error" in the browser —
+      // confirmed by requesting /manifest.webmanifest against the dev
+      // server and observing Content-Type: text/html.
+      devOptions: {
+        enabled: true,
+      },
       manifest: {
         name: 'DeliveryOS Rider',
         short_name: 'DeliveryOS',

@@ -14,12 +14,17 @@ enabled = true
 site_url = "http://localhost:5173"
 additional_redirect_urls = ["https://localhost:5173"]
 
-# Local-dev parity only — the hosted project's Auth Hooks are configured
-# via the Supabase Dashboard (Authentication -> Auth Hooks), not this file.
-[auth.hook.send_sms]
-enabled = true
-uri = "http://host.docker.internal:54321/functions/v1/auth-sms-hook"
-secrets = "env(SEND_SMS_HOOK_SECRET)"
+# The hosted project's Send SMS Auth Hook is configured and production-
+# tested via the Supabase Dashboard (Authentication -> Auth Hooks), not
+# this file. An [auth.hook.send_sms] block was previously added here for
+# local `supabase start` parity, but the Supabase CLI validates it eagerly
+# on every subcommand (including `db push`, which has nothing to do with
+# Auth Hooks) and requires a real, correctly-formatted secret value to be
+# present in the shell environment just to load this config file at all.
+# That made routine migration pushes fail for a purely local-dev concern,
+# so it's removed. This has no effect on the deployed Edge Function,
+# SEND_SMS_HOOK_SECRET, or the Dashboard's Auth Hook configuration — none
+# of those live in this file.
 
 [storage]
 enabled = true
