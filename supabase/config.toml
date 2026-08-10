@@ -14,5 +14,12 @@ enabled = true
 site_url = "http://localhost:5173"
 additional_redirect_urls = ["https://localhost:5173"]
 
+# Local-dev parity only — the hosted project's Auth Hooks are configured
+# via the Supabase Dashboard (Authentication -> Auth Hooks), not this file.
+[auth.hook.send_sms]
+enabled = true
+uri = "http://host.docker.internal:54321/functions/v1/auth-sms-hook"
+secrets = "env(SEND_SMS_HOOK_SECRET)"
+
 [storage]
 enabled = true

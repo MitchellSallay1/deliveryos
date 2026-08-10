@@ -43,7 +43,7 @@ Execution date: 2026-08-07.
 | Tracking | Stronger codes, rate limit RPC, client key on public track |
 | API | Body size limit, correlation ID, sanitized errors, auth event logging |
 | Webhooks | Timestamp header, timeout, response logging, admin retry UI |
-| SMS/Email | HTTP provider adapter, retry/dead-letter on SMS; `email_outbox` + `email-dispatch` |
+| SMS/Email | WinAggregator SMS transport (`SMS_PROVIDER=winaggregator`), retry/dead-letter on SMS; `email_outbox` + `email-dispatch` |
 | Jobs | `jobs-scheduler`, `run_scheduled_maintenance_jobs`, `docs/SCHEDULED_JOBS.md` |
 | Subscriptions | `assert_subscription_operational` on new deliveries; past_due automation |
 | Onboarding | `get_company_onboarding_status`, dashboard checklist |
@@ -70,8 +70,11 @@ See `docs/SECURITY_FUNCTION_AUDIT.md`.
 
 | Channel | Dev | Production |
 |---------|-----|------------|
-| SMS | `SMS_PROVIDER=stub` | `SMS_PROVIDER=http` + `SMS_HTTP_ENDPOINT` (**config UNVERIFIED**) |
+| SMS (operational) | `SMS_PROVIDER=stub` | `SMS_PROVIDER=winaggregator` — **production-tested end-to-end** (`queue_outbound_sms` → `sms_outbox` → `sms-dispatch` → WinAggregator → handset confirmed). One shared endpoint delivers to both MTN Liberia and Orange Liberia, sender ID `DelivOS`, no authentication header. Response body format is still unconfirmed beyond HTTP status. |
+| SMS (auth OTP) | n/a (Supabase Auth handles OTP locally in dev unless the hook is also configured) | Supabase Auth Send SMS Hook → `auth-sms-hook` → WinAggregator — **production-tested end-to-end**: real OTP received via SMS, account setup completed, code verified, session issued. |
 | Email | `EMAIL_PROVIDER=stub` | `EMAIL_PROVIDER=http` + `EMAIL_HTTP_ENDPOINT` (**config UNVERIFIED**) |
+
+Login/registration OTP uses the **same WinAggregator provider** as operational SMS, but through a separate, intentionally decoupled path: Supabase Auth's Send SMS Hook (`auth-sms-hook`), not `sms_outbox`/`sms-dispatch`. Supabase Auth remains the sole authority for OTP generation, expiry, verification, sessions, and rate limiting — `auth-sms-hook` only delivers the SMS. See `docs/SCHEDULED_JOBS.md` for the full architecture.
 
 Team invite emails enqueue via `create_company_invitation` → `queue_email`.
 
@@ -94,7 +97,7 @@ Documented in `docs/DISASTER_RECOVERY.md`. Live restore drill: **UNVERIFIED**.
 ## 7. Remaining blockers
 
 1. **Docker/local or CI-green database tests** (RLS suite + pgTAP)
-2. Production SMS/email HTTP provider credentials and send test
+2. ~~Production SMS: confirm WinAggregator auth requirements and run a real end-to-end send test~~ — **done**, both the operational path (`sms_outbox` → `sms-dispatch`) and the auth OTP path (`auth-sms-hook`) are production-verified. Remaining: production email HTTP provider credentials and send test
 3. Legal review of terms/privacy placeholders
 4. Staging load test execution
 5. External error monitoring wiring

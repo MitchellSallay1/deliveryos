@@ -1,6 +1,10 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { carrierAuthErrorResponse, verifySharedSecret } from "../_shared/carrier-auth.ts";
+import { WinAggregatorSmsProvider } from "../_shared/sms-provider.ts";
+
+const DEFAULT_WINAGGREGATOR_ENDPOINT = "https://winaggregator-mtn.com/request/sms-service/1";
+const DEFAULT_WINAGGREGATOR_SENDER_ID = "DelivOS";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -40,6 +44,13 @@ Deno.serve(async (req) => {
   let sent = 0;
   let failed = 0;
 
+  const winAggregator = provider === "winaggregator"
+    ? new WinAggregatorSmsProvider({
+      endpoint: Deno.env.get("WINAGGREGATOR_SMS_ENDPOINT") ?? DEFAULT_WINAGGREGATOR_ENDPOINT,
+      senderId: Deno.env.get("WINAGGREGATOR_SENDER_ID") ?? DEFAULT_WINAGGREGATOR_SENDER_ID,
+    })
+    : null;
+
   for (const row of rows ?? []) {
     await supabase
       .from("sms_outbox")
@@ -63,31 +74,19 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      if (provider === "http") {
-        const endpoint = Deno.env.get("SMS_HTTP_ENDPOINT");
-        const token = Deno.env.get("SMS_HTTP_TOKEN");
-        if (!endpoint) throw new Error("SMS_HTTP_ENDPOINT not set");
-
-        const res = await fetch(endpoint, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: token ? `Bearer ${token}` : "",
-          },
-          body: JSON.stringify({ to: row.phone, message: row.body }),
-        });
-
-        if (!res.ok) throw new Error(`provider HTTP ${res.status}`);
-        const payload = await res.json().catch(() => ({}));
+      if (provider === "winaggregator" && winAggregator) {
+        const result = await winAggregator.send({ phone: row.phone, message: row.body });
+        if (!result.ok) {
+          const detail = result.providerResponseRaw ? `${result.error}: ${result.providerResponseRaw}` : result.error;
+          throw new Error(detail);
+        }
 
         await supabase
           .from("sms_outbox")
           .update({
             status: "sent",
             sent_at: now,
-            provider: "http",
-            provider_message_id: String(payload.id ?? payload.message_id ?? ""),
-            cost_cents: Number(payload.cost_cents ?? 0) || null,
+            provider: "winaggregator",
             attempt_count: attempt,
           })
           .eq("id", row.id);

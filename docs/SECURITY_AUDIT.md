@@ -76,7 +76,7 @@
 | Channel | Secret handling | Notes |
 |---------|-----------------|-------|
 | Operational SMS | Edge env, `x-sms-secret` | Separate from auth OTP |
-| Auth OTP | Supabase provider | MTN TBD |
+| Auth OTP | Supabase Auth + Send SMS Hook (`SEND_SMS_HOOK_SECRET`, Standard Webhooks-signed, fail-closed) | Production-verified via WinAggregator; not a native MTN carrier integration |
 | Button-phone OTP proof | DB + inbound edge | Not Supabase Auth |
 
 **Risk:** SMS spoofing at carrier layer — operational acceptance for market.

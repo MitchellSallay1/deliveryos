@@ -22,7 +22,7 @@ Keep staging on the **same major Postgres version** as production (currently 15 
 
 - **Database URL** — migrations, backups, `DATABASE_URL` for `npm run test:db`
 - **Anon key** — Vite `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
-- **Auth (phone OTP)** — enable Phone provider; SMS gateway or Send SMS Hook (MTN TBD)
+- **Auth (phone OTP)** — Phone provider enabled; Send SMS Hook configured (`auth-sms-hook` → WinAggregator) — **production-verified**
 - **Service role key** — server-side automation only; never expose to the browser
 - **JWT secret** — managed by Supabase; do not rotate without a maintenance window
 - **SMS provider** (operational) — Edge Function env for outbound/inbound rider/customer SMS (separate from Auth OTP config)
@@ -44,19 +44,19 @@ VITE_APP_URL=http://localhost:5173
 ### Supabase Auth — phone OTP
 
 1. **Authentication → Providers → Phone** — enable.
-2. Configure SMS (Supabase-supported gateway or **Send SMS Hook**). MTN credentials/spec: TBD ([MTN_INTEGRATION.md](./MTN_INTEGRATION.md)).
+2. SMS delivered via **Send SMS Hook** → `auth-sms-hook` → WinAggregator (covers MTN Liberia and Orange Liberia; not a native MTN carrier integration — see [MTN_INTEGRATION.md](./MTN_INTEGRATION.md)).
 3. Enable Auth **rate limits** and **CAPTCHA** for production.
 4. Keep **Site URL** / **Redirect URLs** for `/auth/callback` if using magic links or OAuth; normal login is phone OTP in-app.
 
-**Manual smoke test (after SMS provider configured):**
+**Manual smoke test — step 1 production-verified (real SMS received, code verified, session issued); steps 2–5 still to be exercised end-to-end with real SMS:**
 
-1. Login → OTP received → session established  
-2. Register company owner → workspace + 7-day trial  
-3. Team invite by phone → accept with matching verified phone  
-4. Rider OTP + invite link → `link_rider_account` → My Jobs  
-5. Logout → login again with OTP  
+1. Login → OTP received → session established — ✅ verified in production
+2. Register company owner → workspace + 7-day trial
+3. Team invite by phone → accept with matching verified phone
+4. Rider OTP + invite link → `link_rider_account` → My Jobs
+5. Logout → login again with OTP
 
-Until SMS is configured, use mocked/unit tests only — **do not claim end-to-end OTP delivery**.
+Steps 2–5 use the same OTP delivery mechanism as step 1, so they're expected to work, but each persona's registration flow should still be run once for real before considering it fully signed off.
 
 Legacy email test users: delete or reset in dev ([PHONE_AUTH.md](./PHONE_AUTH.md)).
 

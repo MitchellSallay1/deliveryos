@@ -12,8 +12,8 @@
 ## How to use
 
 1. Apply all migrations to staging (`supabase db push`).
-2. Configure Supabase Phone provider **or** accept AUTH tests as Blocked until MTN SMS (document in notes).
-3. Deploy Edge Functions (`sms-inbound`, `ussd-rider`, `jobs-scheduler`, `api-v1`, etc.).
+2. Configure Supabase Phone provider + Send SMS Hook (`auth-sms-hook` → WinAggregator) — production-verified end-to-end; AUTH tests below are no longer blocked on SMS delivery.
+3. Deploy Edge Functions (`sms-inbound`, `ussd-rider`, `jobs-scheduler`, `api-v1`, `auth-sms-hook`, etc.).
 4. Execute tests in order; log defects with Test ID reference.
 
 ---

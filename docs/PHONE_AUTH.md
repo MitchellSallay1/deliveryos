@@ -74,8 +74,8 @@ Lost phone number: **no self-service phone change** in v1; admin/support recover
 
 ## End-to-end SMS
 
-**Blocked until an SMS provider is configured in Supabase** (MTN credentials/spec TBD).
+**Production-verified.** The Supabase Auth Send SMS Hook (`auth-sms-hook` → WinAggregator) is configured and a real end-to-end OTP was sent, received, and verified in production (see `docs/SCHEDULED_JOBS.md`).
 
-Do not assume OTP delivery works in local/dev without provider configuration.
+Local/dev environments still need the hook configured (or a stub) to receive real SMS — without it, OTP generation/verification still works in Supabase Auth, but no message is actually delivered. Don’t assume delivery works in an environment where the hook hasn’t been set up.
 
-See [MTN_INTEGRATION.md](./MTN_INTEGRATION.md) and Supabase phone provider setup in this repo’s `docs/AUTHENTICATION.md`.
+See [MTN_INTEGRATION.md](./MTN_INTEGRATION.md) for the distinction between this WinAggregator-based delivery (live) and a native MTN carrier integration (not built), and Supabase phone provider setup in this repo’s `docs/AUTHENTICATION.md`.

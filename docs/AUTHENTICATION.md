@@ -22,16 +22,16 @@ Auth metadata (`user.user_metadata.persona`) drives routing:
 - `/login` — phone OTP (`PhoneOtpFlow`)
 - `/auth/callback` — OAuth/magic-link recovery only; email confirmation no longer required for normal login
 
-## Supabase Dashboard configuration (required for production OTP)
+## Supabase Dashboard configuration (production OTP — configured and verified)
 
-1. **Authentication → Providers → Phone** — enable phone sign-in.
-2. **SMS provider** — configure gateway or **Send SMS Hook** (MTN TBD; see [MTN_INTEGRATION.md](./MTN_INTEGRATION.md)).
+1. **Authentication → Providers → Phone** — enabled.
+2. **SMS provider** — delivered via **Send SMS Hook** → `auth-sms-hook` → WinAggregator (covers MTN Liberia and Orange Liberia through one shared gateway; not a native MTN carrier integration — see [MTN_INTEGRATION.md](./MTN_INTEGRATION.md) for the distinction).
 3. **OTP length / expiry** — align with UX (6-digit typical).
 4. **Rate limits** — enable Auth rate limiting; tune for OTP abuse.
 5. **CAPTCHA** — recommended on `signInWithOtp` in production.
-6. **No SMS secrets in Vite** — only `VITE_SUPABASE_URL` and anon key in the browser.
+6. **No SMS secrets in Vite** — only `VITE_SUPABASE_URL` and anon key in the browser. `SEND_SMS_HOOK_SECRET` and WinAggregator config live only in Edge Function secrets.
 
-Until SMS is configured, flows work in code/tests with mocks; **real OTP delivery is blocked**.
+**Real OTP delivery is production-verified**: a live end-to-end test (`signInWithOtp` → Send SMS Hook → `auth-sms-hook` → WinAggregator → handset → code entered → `verifyOtp` → session issued) succeeded. See `docs/SCHEDULED_JOBS.md` for the full architecture and `supabase/functions/auth-sms-hook/`.
 
 ## Guards
 

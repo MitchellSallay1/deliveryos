@@ -9,7 +9,7 @@
 
 ## AUTH
 
-- [ ] Phone provider enabled; SMS gateway or Auth Send SMS Hook configured (MTN TBD)
+- [x] Phone provider enabled; Auth Send SMS Hook (`auth-sms-hook` → WinAggregator) configured and **production-tested end-to-end**: real OTP received via SMS from "DelivOS", account setup completed, code verified, session issued. Separate, intentionally decoupled from the WinAggregator transport used for delivery/rider SMS (`sms_outbox` → `sms-dispatch`).
 - [ ] Auth rate limits + CAPTCHA for OTP
 - [ ] Legacy email test users removed or migrated (dev/staging)
 - [ ] `/auth/callback` redirect URLs if using OAuth/magic links
@@ -17,7 +17,7 @@
 
 ## SECURITY
 
-- [ ] Secrets rotated (service role, cron, SMS, email)
+- [ ] Secrets rotated (service role, cron, SMS, email, `SEND_SMS_HOOK_SECRET`)
 - [ ] Service role never in Vite bundle
 - [ ] API rate limits verified (`api-v1`)
 - [ ] Webhook secrets stored per endpoint
@@ -29,7 +29,8 @@
 
 ## SMS / EMAIL
 
-- [ ] `SMS_PROVIDER=http` + endpoint configured OR stub only in dev
+- [x] `SMS_PROVIDER=winaggregator` — confirmed production endpoint, sender ID `DelivOS`, no authentication required (defaults are set in code; override via `WINAGGREGATOR_SMS_ENDPOINT` / `WINAGGREGATOR_SENDER_ID` if needed)
+- [ ] Real WinAggregator response samples (success and failure) captured and reviewed — current code only checks HTTP status, no response-body parsing
 - [ ] `EMAIL_PROVIDER=http` + endpoint configured
 - [ ] `jobs-scheduler` cron every 5 minutes
 

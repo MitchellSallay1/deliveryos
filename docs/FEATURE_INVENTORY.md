@@ -22,7 +22,7 @@ Audit date: 2026-08-08 · Static codebase review (not live SMS/MTN verification)
 | **SMS (operational)** | Implemented | Assign job SMS, inbound keywords | Edge `sms-inbound`, `sms-dispatch` | Postgres queue |
 | **USSD** | Implemented | Rider commands via USSD handler | Edge `ussd-rider` | `handle_ussd_request` |
 | **OTP (proof / button-phone)** | Implemented | Separate from auth OTP | Rider channel migration | SQL proof flows |
-| **Auth SMS OTP** | **Blocked externally** | Client ready; provider not configured | `auth-sms-provider.ts` | Supabase Phone provider / MTN TBD |
+| **Auth SMS OTP** | **Implemented, production-verified** | Send SMS Hook → `auth-sms-hook` → WinAggregator; real end-to-end OTP confirmed | `auth-sms-provider.ts`, `supabase/functions/auth-sms-hook/` | Supabase Phone provider + Send SMS Hook |
 | **Maps / live map** | Implemented | Leaflet map, rider locations | `/live-map` | Location samples + RLS |
 | **Realtime** | Implemented | Deliveries postgres_changes | `useDeliveries` | Supabase Realtime |
 | **REST API v1** | Implemented | API keys, rate limits | Edge `api-v1` | `verify_api_key` |
