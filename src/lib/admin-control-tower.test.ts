@@ -11,6 +11,7 @@ import {
   healthStateColor,
   healthStateFrom,
   overallPlatformStatus,
+  platformUserLifecycleBadge,
   statusColorFor,
   superAdminRouteDecision,
   trialConversionRate,
@@ -226,5 +227,30 @@ describe('formatLrd', () => {
   it('handles zero/undefined without throwing', () => {
     expect(formatLrd(0)).toBe('LRD 0')
     expect(formatLrd(undefined)).toBe('LRD 0')
+  })
+})
+
+describe('platformUserLifecycleBadge', () => {
+  it('labels an unverified identity distinctly from a real user, in gray (low-signal, not alarming)', () => {
+    expect(platformUserLifecycleBadge('unverified')).toEqual({ label: 'Unverified', color: 'gray' })
+  })
+
+  it('labels a verified-but-abandoned account as incomplete, in amber', () => {
+    expect(platformUserLifecycleBadge('verified_incomplete')).toEqual({
+      label: 'Verified — Setup incomplete',
+      color: 'amber',
+    })
+  })
+
+  it('labels a fully onboarded user as active, in green', () => {
+    expect(platformUserLifecycleBadge('active')).toEqual({ label: 'Active', color: 'green' })
+  })
+
+  it('labels a super admin distinctly', () => {
+    expect(platformUserLifecycleBadge('super_admin')).toEqual({ label: 'Super Admin', color: 'amber' })
+  })
+
+  it('falls back to a neutral Unknown badge for an unrecognized status rather than throwing', () => {
+    expect(platformUserLifecycleBadge('made_up')).toEqual({ label: 'Unknown', color: 'gray' })
   })
 })

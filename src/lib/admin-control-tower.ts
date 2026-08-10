@@ -185,3 +185,35 @@ export function overallPlatformStatus(alerts: PlatformAlert[]): { color: StatusC
   if (groups.warning.length > 0) return { color: 'amber', label: 'Needs attention' }
   return { color: 'green', label: 'All systems normal' }
 }
+
+/**
+ * Canonical platform user lifecycle states, matching
+ * admin_list_platform_users/admin_platform_user_funnel's server-side
+ * derivation exactly (unverified / verified_incomplete / active /
+ * super_admin) — the frontend never re-derives this from raw fields, only
+ * labels the status the RPC already computed.
+ */
+export type PlatformUserLifecycleStatus = 'unverified' | 'verified_incomplete' | 'active' | 'super_admin'
+
+export const PLATFORM_USER_LIFECYCLE_OPTIONS: Array<{ value: PlatformUserLifecycleStatus; label: string }> = [
+  { value: 'unverified', label: 'Unverified' },
+  { value: 'verified_incomplete', label: 'Verified — Setup incomplete' },
+  { value: 'active', label: 'Active' },
+  { value: 'super_admin', label: 'Super Admin' },
+]
+
+/** Badge color/label for a platform user's lifecycle status. Unrecognized values fall back to a neutral gray "Unknown" rather than throwing. */
+export function platformUserLifecycleBadge(status: string): { label: string; color: StatusColor } {
+  switch (status) {
+    case 'unverified':
+      return { label: 'Unverified', color: 'gray' }
+    case 'verified_incomplete':
+      return { label: 'Verified — Setup incomplete', color: 'amber' }
+    case 'active':
+      return { label: 'Active', color: 'green' }
+    case 'super_admin':
+      return { label: 'Super Admin', color: 'amber' }
+    default:
+      return { label: 'Unknown', color: 'gray' }
+  }
+}

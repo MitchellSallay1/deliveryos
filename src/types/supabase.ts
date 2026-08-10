@@ -729,6 +729,19 @@ export interface Database {
         }
         Returns: Json
       }
+      admin_list_platform_users: {
+        Args: {
+          p_search?: string | null
+          p_status?: string | null
+          p_limit?: number
+          p_offset?: number
+        }
+        Returns: Json
+      }
+      admin_platform_user_funnel: {
+        Args: Record<string, never>
+        Returns: Json
+      }
       get_platform_analytics: {
         Args: Record<string, never>
         Returns: Json
