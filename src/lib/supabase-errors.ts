@@ -18,6 +18,8 @@ const ERROR_MESSAGES: Record<string, string> = {
     'Monthly delivery limit reached for your subscription plan. Upgrade or wait until next month.',
   rider_plan_limit_reached: 'Rider limit reached for your subscription plan.',
   sms_credits_exhausted: 'SMS credits exhausted. Top up credits to send messages.',
+  feature_not_available: 'This requires a plan upgrade.',
+  gps_not_enabled: 'Live GPS tracking is not included in your current plan.',
   invitation_invalid: 'This invitation link is invalid or has expired.',
   invitation_email_mismatch:
     'Sign in with the email address that received this invitation.',

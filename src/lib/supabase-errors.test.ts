@@ -19,4 +19,22 @@ describe('parseSupabaseError', () => {
   it('maps invitation_phone_mismatch', () => {
     expect(parseSupabaseError({ message: 'invitation_phone_mismatch' })).toMatch(/phone number/i)
   })
+
+  it('maps feature_not_available to a plan-upgrade message', () => {
+    expect(parseSupabaseError({ message: 'feature_not_available' })).toMatch(/plan upgrade/i)
+  })
+
+  it('maps gps_not_enabled to a plan-specific message, distinct from the generic feature gate', () => {
+    const msg = parseSupabaseError({ message: 'gps_not_enabled' })
+    expect(msg).toMatch(/GPS/i)
+    expect(msg).not.toBe(parseSupabaseError({ message: 'feature_not_available' }))
+  })
+
+  it('maps rider_plan_limit_reached', () => {
+    expect(parseSupabaseError({ message: 'rider_plan_limit_reached' })).toMatch(/rider limit/i)
+  })
+
+  it('maps subscription_past_due', () => {
+    expect(parseSupabaseError({ message: 'subscription_past_due' })).toMatch(/past due/i)
+  })
 })

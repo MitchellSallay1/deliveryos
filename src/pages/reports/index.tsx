@@ -8,6 +8,7 @@ import { getProfitability } from '@/services/operations-service'
 import { useWorkspaceReport } from '@/hooks/use-reports'
 import type { ReportPeriod } from '@/types/reports'
 import { formatLrdFromCents } from '@/utils/delivery-schemas'
+import { parseSupabaseError } from '@/lib/supabase-errors'
 
 const PERIOD_LABELS: Record<ReportPeriod, string> = {
   day: 'Today',
@@ -66,11 +67,7 @@ export function ReportsPage() {
         </div>
       </div>
 
-      {error && (
-        <p className="text-sm text-red-600">
-          {error instanceof Error ? error.message : 'Failed to load report'}
-        </p>
-      )}
+      {error && <p className="text-sm text-red-600">{parseSupabaseError(error)}</p>}
 
       {(isLoading || isFetching) && !summary && (
         <p className="text-sm text-[var(--color-muted)]">Loading…</p>

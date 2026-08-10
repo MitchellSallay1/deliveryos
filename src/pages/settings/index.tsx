@@ -18,6 +18,7 @@ import { DeliveryZonesSection } from '@/components/DeliveryZonesSection'
 import { IntegrationsSettingsSection } from '@/components/IntegrationsSettingsSection'
 import { MarketplaceProviderSettings } from '@/components/MarketplaceProviderSettings'
 import { formatLrdFromCents } from '@/utils/delivery-schemas'
+import { parseSupabaseError } from '@/lib/supabase-errors'
 
 export function SettingsPage() {
   const { context, user, refreshContext } = useAuth()
@@ -59,7 +60,7 @@ export function SettingsPage() {
       refreshContext()
       setMessage('Profile saved.')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Save failed')
+      setError(parseSupabaseError(err))
     }
   }
 
@@ -79,7 +80,7 @@ export function SettingsPage() {
       refreshContext()
       setMessage('Company profile saved.')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Save failed')
+      setError(parseSupabaseError(err))
     }
   }
 

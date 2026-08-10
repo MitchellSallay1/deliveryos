@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { useAuth } from '@/hooks/use-auth'
 import { listBranches } from '@/services/operations-service'
+import { parseSupabaseError } from '@/lib/supabase-errors'
 
 export function BranchesPage() {
   const companyId = useAuth().context?.activeCompanyId ?? null
@@ -18,7 +19,7 @@ export function BranchesPage() {
       </CardHeader>
       <CardContent className="text-sm">
         {isLoading && <p className="text-[var(--color-muted)]">Loading…</p>}
-        {error && <p className="text-red-600">{error instanceof Error ? error.message : 'Error'}</p>}
+        {error && <p className="text-red-600">{parseSupabaseError(error)}</p>}
         <ul>
           {(branches as { id: string; name: string; code: string; city: string | null }[]).map((b) => (
             <li key={b.id} className="border-b py-2">

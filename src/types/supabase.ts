@@ -81,7 +81,10 @@ export interface Database {
           address: string | null
           status: CompanyStatus
           subscription_id: string
+          /** Generated (sms_credits_included + sms_credits_purchased) — read-only, cannot be inserted/updated directly. */
           sms_credits: number
+          sms_credits_included: number
+          sms_credits_purchased: number
           allow_smartphone_riders?: boolean
           allow_button_phone_riders?: boolean
           enable_rider_sms?: boolean
@@ -102,7 +105,6 @@ export interface Database {
           address?: string | null
           status?: CompanyStatus
           subscription_id: string
-          sms_credits?: number
         }
         Update: {
           name?: string
@@ -112,7 +114,6 @@ export interface Database {
           address?: string | null
           status?: CompanyStatus
           subscription_id?: string
-          sms_credits?: number
         }
         Relationships: [
           {

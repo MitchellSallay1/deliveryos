@@ -16,6 +16,7 @@ import {
 } from '@/hooks/use-riders'
 import type { Rider } from '@/types/fleet'
 import type { RiderStatus } from '@/types/supabase'
+import { parseSupabaseError } from '@/lib/supabase-errors'
 import {
   createRiderSchema,
   isButtonPhoneCapable,
@@ -67,7 +68,7 @@ export function RidersPage() {
       form.reset()
       setShowForm(false)
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : 'Could not create rider')
+      setFormError(parseSupabaseError(err))
     }
   }
 
@@ -76,7 +77,7 @@ export function RidersPage() {
     try {
       await statusMutation.mutateAsync({ id: rider.id, status })
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : 'Update failed')
+      setFormError(parseSupabaseError(err))
     }
   }
 
@@ -173,11 +174,7 @@ export function RidersPage() {
       <Card>
         <CardContent className="overflow-x-auto pt-6">
           {isLoading && <p className="text-sm text-[var(--color-muted)]">Loading…</p>}
-          {error && (
-            <p className="text-sm text-red-600">
-              {error instanceof Error ? error.message : 'Failed to load riders'}
-            </p>
-          )}
+          {error && <p className="text-sm text-red-600">{parseSupabaseError(error)}</p>}
           <table className="w-full min-w-[640px] text-left text-sm">
             <thead>
               <tr className="border-b text-xs uppercase text-[var(--color-muted)]">

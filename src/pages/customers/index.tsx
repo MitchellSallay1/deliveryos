@@ -12,6 +12,7 @@ import {
 } from '@/hooks/use-customers'
 import type { Customer } from '@/types/fleet'
 import { customerSchema } from '@/utils/customer-schemas'
+import { parseSupabaseError } from '@/lib/supabase-errors'
 
 export function CustomersPage() {
   const { context } = useAuth()
@@ -60,7 +61,7 @@ export function CustomersPage() {
       }
       form.reset()
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : 'Save failed')
+      setFormError(parseSupabaseError(err))
     }
   }
 
@@ -159,11 +160,7 @@ export function CustomersPage() {
       <Card>
         <CardContent className="overflow-x-auto pt-6">
           {isLoading && <p className="text-sm text-[var(--color-muted)]">Loading…</p>}
-          {error && (
-            <p className="text-sm text-red-600">
-              {error instanceof Error ? error.message : 'Failed to load'}
-            </p>
-          )}
+          {error && <p className="text-sm text-red-600">{parseSupabaseError(error)}</p>}
           <table className="w-full min-w-[640px] text-left text-sm">
             <thead className="sticky top-0 bg-white">
               <tr className="border-b text-xs uppercase tracking-wide text-[var(--color-muted)]">
