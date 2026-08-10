@@ -1,11 +1,19 @@
 import { useState } from 'react'
-import { Button } from '@/components/ui/Button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
-import { Input } from '@/components/ui/Input'
+import {
+  CommandButton,
+  CommandCard,
+  CommandCardBody,
+  CommandCardHeader,
+  CommandSelect,
+  ConfirmDialog,
+  SectionHeader,
+} from '@/components/admin/control-tower'
 import { useAdminCompanies } from '@/hooks/use-admin'
 import { useAdminBillingActions, useAdminPlans } from '@/hooks/use-billing'
 import type { CompanySubscriptionStatus } from '@/types/supabase'
 import { parseSupabaseError } from '@/lib/supabase-errors'
+
+const STATUSES: CompanySubscriptionStatus[] = ['trialing', 'active', 'past_due', 'suspended', 'cancelled', 'expired']
 
 export function AdminSubscriptionsPage() {
   const { data: companies = [] } = useAdminCompanies(true)
@@ -15,64 +23,77 @@ export function AdminSubscriptionsPage() {
   const [planId, setPlanId] = useState('')
   const [status, setStatus] = useState<CompanySubscriptionStatus>('active')
   const [error, setError] = useState<string | null>(null)
+  const [confirmOpen, setConfirmOpen] = useState(false)
+
+  const selectedCompany = companies.find((c) => c.id === companyId)
+  const selectedPlan = (plans as { id: string; name: string }[]).find((p) => p.id === planId)
 
   async function apply() {
     setError(null)
     if (!companyId || !planId) return
     try {
       await setSubscription.mutateAsync({ companyId, planId, status })
+      setConfirmOpen(false)
     } catch (e) {
       setError(parseSupabaseError(e))
     }
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Company subscriptions</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3 max-w-lg">
-        {error && <p className="text-sm text-red-600">{error}</p>}
-        <select
-          className="h-10 w-full rounded-md border px-3 text-sm"
-          value={companyId}
-          onChange={(e) => setCompanyId(e.target.value)}
-        >
-          <option value="">Select company…</option>
-          {companies.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
-        <select
-          className="h-10 w-full rounded-md border px-3 text-sm"
-          value={planId}
-          onChange={(e) => setPlanId(e.target.value)}
-        >
-          <option value="">Select plan…</option>
-          {(plans as { id: string; name: string }[]).map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name}
-            </option>
-          ))}
-        </select>
-        <select
-          className="h-10 w-full rounded-md border px-3 text-sm"
-          value={status}
-          onChange={(e) => setStatus(e.target.value as CompanySubscriptionStatus)}
-        >
-          {['trialing', 'active', 'past_due', 'suspended', 'cancelled', 'expired'].map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
-          ))}
-        </select>
-        <Input type="datetime-local" disabled title="Extend via admin_extend_subscription RPC in ops" />
-        <Button type="button" onClick={() => void apply()}>
-          Apply subscription change
-        </Button>
-      </CardContent>
-    </Card>
+    <div className="space-y-4">
+      <SectionHeader eyebrow="Billing" title="Company subscriptions" className="mb-0" />
+      <CommandCard className="max-w-lg">
+        <CommandCardHeader title="Change a company's plan or status" description="Applies immediately — affects billing enforcement" />
+        <CommandCardBody className="space-y-3">
+          {error && <p className="text-sm text-red-400">{error}</p>}
+          <CommandSelect value={companyId} onChange={(e) => setCompanyId(e.target.value)}>
+            <option value="">Select company…</option>
+            {companies.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </CommandSelect>
+          <CommandSelect value={planId} onChange={(e) => setPlanId(e.target.value)}>
+            <option value="">Select plan…</option>
+            {(plans as { id: string; name: string }[]).map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </CommandSelect>
+          <CommandSelect value={status} onChange={(e) => setStatus(e.target.value as CompanySubscriptionStatus)}>
+            {STATUSES.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </CommandSelect>
+          <p className="text-xs text-zinc-600">Extend the billing period via the admin_extend_subscription RPC in the ops runbook.</p>
+          <CommandButton
+            variant="primary"
+            disabled={!companyId || !planId || setSubscription.isPending}
+            onClick={() => setConfirmOpen(true)}
+          >
+            Apply subscription change
+          </CommandButton>
+        </CommandCardBody>
+      </CommandCard>
+
+      <ConfirmDialog
+        open={confirmOpen}
+        title="Change this company's subscription?"
+        description={
+          selectedCompany && selectedPlan
+            ? `${selectedCompany.name} will be moved to ${selectedPlan.name} with status "${status}". This affects billing enforcement immediately.`
+            : 'This affects billing enforcement immediately.'
+        }
+        confirmLabel="Apply change"
+        danger={status === 'suspended' || status === 'cancelled' || status === 'expired'}
+        pending={setSubscription.isPending}
+        onConfirm={() => void apply()}
+        onCancel={() => setConfirmOpen(false)}
+      />
+    </div>
   )
 }

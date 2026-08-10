@@ -9,6 +9,8 @@ export type MapMarker = MapCoordinate & {
   id: string
   label?: string
   kind?: 'rider' | 'pickup' | 'destination' | 'approximate'
+  /** Optional — when set, renders a colored status dot instead of the default pin. Backward compatible: omit to keep the default marker. */
+  status?: 'online' | 'busy' | 'offline'
 }
 
 export type MapViewport = {

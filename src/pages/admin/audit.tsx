@@ -1,7 +1,18 @@
 import { useState } from 'react'
-import { Button } from '@/components/ui/Button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
-import { Input } from '@/components/ui/Input'
+import {
+  CommandButton,
+  CommandCard,
+  CommandCardBody,
+  CommandEmptyState,
+  CommandInput,
+  CommandPagination,
+  CommandTable,
+  CommandTableHead,
+  CommandTd,
+  CommandTh,
+  CommandTr,
+  SectionHeader,
+} from '@/components/admin/control-tower'
 import { useAuditLogsAdmin } from '@/hooks/use-admin-platform'
 
 export function AdminAuditPage() {
@@ -16,58 +27,53 @@ export function AdminAuditPage() {
   const total = data?.total ?? 0
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Platform audit log</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="mb-3 flex max-w-md gap-2">
-          <Input placeholder="Filter action" value={action} onChange={(e) => setAction(e.target.value)} />
-          <Button
-            size="sm"
+    <div className="space-y-4">
+      <SectionHeader eyebrow="Audit" title="Platform audit log" className="mb-0" />
+      <CommandCard>
+        <CommandCardBody className="flex max-w-md gap-2 border-b border-white/[0.06] pb-4">
+          <CommandInput placeholder="Filter action" value={action} onChange={(e) => setAction(e.target.value)} />
+          <CommandButton
+            variant="primary"
             onClick={() => {
               setActionFilter(action.trim() || undefined)
               setPage(1)
             }}
           >
             Filter
-          </Button>
+          </CommandButton>
+        </CommandCardBody>
+        {isLoading ? (
+          <p className="p-4 text-sm text-zinc-500">Loading…</p>
+        ) : rows.length === 0 ? (
+          <CommandEmptyState label="No audit events match this filter." />
+        ) : (
+          <CommandTable>
+            <CommandTableHead>
+              <CommandTh>When</CommandTh>
+              <CommandTh>Actor</CommandTh>
+              <CommandTh>Action</CommandTh>
+              <CommandTh>Entity</CommandTh>
+              <CommandTh className="text-right">Company</CommandTh>
+            </CommandTableHead>
+            <tbody>
+              {rows.map((r) => (
+                <CommandTr key={String(r.id)}>
+                  <CommandTd className="text-xs text-zinc-500">{new Date(String(r.created_at)).toLocaleString()}</CommandTd>
+                  <CommandTd className="text-xs text-zinc-400">{String(r.actor_name ?? r.actor_user_id ?? '—')}</CommandTd>
+                  <CommandTd>{String(r.action)}</CommandTd>
+                  <CommandTd className="text-xs text-zinc-400">
+                    {String(r.entity_type)} {String(r.entity_id ?? '')}
+                  </CommandTd>
+                  <CommandTd className="text-right font-mono text-xs text-zinc-500">{String(r.company_id ?? '—')}</CommandTd>
+                </CommandTr>
+              ))}
+            </tbody>
+          </CommandTable>
+        )}
+        <div className="px-4 pb-4">
+          <CommandPagination total={total} page={page} pageSize={25} onPage={setPage} loading={isLoading} />
         </div>
-        {isLoading && <p className="text-sm text-[var(--color-muted)]">Loading…</p>}
-        <table className="w-full text-left text-sm">
-          <thead>
-            <tr className="border-b text-xs uppercase text-[var(--color-muted)]">
-              <th className="py-2">When</th>
-              <th className="py-2">Actor</th>
-              <th className="py-2">Action</th>
-              <th className="py-2">Entity</th>
-              <th className="py-2">Company</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((r) => (
-              <tr key={String(r.id)} className="border-b">
-                <td className="py-2 text-xs">{String(r.created_at)}</td>
-                <td className="py-2 text-xs">{String(r.actor_name ?? r.actor_user_id ?? '—')}</td>
-                <td className="py-2">{String(r.action)}</td>
-                <td className="py-2 text-xs">
-                  {String(r.entity_type)} {String(r.entity_id ?? '')}
-                </td>
-                <td className="py-2 text-xs font-mono">{String(r.company_id ?? '—')}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <p className="mt-2 text-xs text-[var(--color-muted)]">{total} events · page {page}</p>
-        <div className="mt-2 flex gap-2">
-          <Button size="sm" variant="outline" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
-            Previous
-          </Button>
-          <Button size="sm" variant="outline" disabled={page * 25 >= total} onClick={() => setPage((p) => p + 1)}>
-            Next
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+      </CommandCard>
+    </div>
   )
 }

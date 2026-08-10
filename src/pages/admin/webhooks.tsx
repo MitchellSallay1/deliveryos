@@ -1,6 +1,17 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Button } from '@/components/ui/Button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import {
+  CommandButton,
+  CommandCard,
+  CommandEmptyState,
+  CommandTable,
+  CommandTableHead,
+  CommandTd,
+  CommandTh,
+  CommandTr,
+  SectionHeader,
+  StatusChip,
+} from '@/components/admin/control-tower'
+import { statusColorFor } from '@/lib/admin-control-tower'
 import { supabase } from '@/lib/supabase/client'
 
 export function AdminWebhooksPage() {
@@ -25,27 +36,41 @@ export function AdminWebhooksPage() {
     onSuccess: () => void qc.invalidateQueries({ queryKey: ['admin-webhook-failures'] }),
   })
 
+  const items = data?.items ?? []
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Failed webhook deliveries ({data?.total ?? 0})</CardTitle>
-      </CardHeader>
-      <CardContent>
-        {isLoading && <p className="text-sm text-[var(--color-muted)]">Loading…</p>}
-        <ul className="divide-y text-sm">
-          {(data?.items ?? []).map((row) => (
-            <li key={String(row.id)} className="flex flex-wrap items-center justify-between gap-2 py-2">
-              <div>
-                <p className="font-medium">{String(row.status)}</p>
-                <p className="text-[var(--color-muted)]">{String(row.last_error ?? '—')}</p>
-              </div>
-              <Button size="sm" variant="outline" onClick={() => retry.mutate(String(row.id))}>
-                Retry
-              </Button>
-            </li>
-          ))}
-        </ul>
-      </CardContent>
-    </Card>
+    <div className="space-y-4">
+      <SectionHeader eyebrow="Webhooks" title={`Failed deliveries (${data?.total ?? 0})`} className="mb-0" />
+      <CommandCard>
+        {isLoading ? (
+          <p className="p-4 text-sm text-zinc-500">Loading…</p>
+        ) : items.length === 0 ? (
+          <CommandEmptyState label="No failed webhook deliveries." />
+        ) : (
+          <CommandTable>
+            <CommandTableHead>
+              <CommandTh>Status</CommandTh>
+              <CommandTh>Error</CommandTh>
+              <CommandTh className="text-right">Action</CommandTh>
+            </CommandTableHead>
+            <tbody>
+              {items.map((row) => (
+                <CommandTr key={String(row.id)}>
+                  <CommandTd>
+                    <StatusChip color={statusColorFor(String(row.status))} label={String(row.status)} />
+                  </CommandTd>
+                  <CommandTd className="max-w-md truncate text-xs text-zinc-500">{String(row.last_error ?? '—')}</CommandTd>
+                  <CommandTd className="text-right">
+                    <CommandButton size="sm" disabled={retry.isPending} onClick={() => retry.mutate(String(row.id))}>
+                      Retry
+                    </CommandButton>
+                  </CommandTd>
+                </CommandTr>
+              ))}
+            </tbody>
+          </CommandTable>
+        )}
+      </CommandCard>
+    </div>
   )
 }

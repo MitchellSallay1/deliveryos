@@ -13,6 +13,23 @@ const icon = L.icon({
   iconAnchor: [12, 41],
 })
 
+const STATUS_DOT_COLOR: Record<NonNullable<MapMarker['status']>, string> = {
+  online: '#22c55e',
+  busy: '#f59e0b',
+  offline: '#71717a',
+}
+
+/** Lightweight colored-dot marker for status-aware maps (e.g. admin rider clusters) — no extra image assets. */
+function statusDivIcon(status: NonNullable<MapMarker['status']>) {
+  const color = STATUS_DOT_COLOR[status]
+  return L.divIcon({
+    className: '',
+    html: `<span style="display:block;width:14px;height:14px;border-radius:9999px;background:${color};border:2px solid rgba(0,0,0,0.5);box-shadow:0 0 0 2px rgba(255,255,255,0.15)"></span>`,
+    iconSize: [14, 14],
+    iconAnchor: [7, 7],
+  })
+}
+
 function Recenter({ viewport }: { viewport: MapViewport }) {
   const map = useMap()
   useEffect(() => {
@@ -43,7 +60,7 @@ export function LeafletMap({
       />
       <Recenter viewport={viewport} />
       {markers.map((m) => (
-        <Marker key={m.id} position={[m.latitude, m.longitude]} icon={icon}>
+        <Marker key={m.id} position={[m.latitude, m.longitude]} icon={m.status ? statusDivIcon(m.status) : icon}>
           {m.label ? <Popup>{m.label}</Popup> : null}
         </Marker>
       ))}

@@ -1,8 +1,18 @@
 import { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
-import { useAdminApiKeysPage } from '@/hooks/use-admin-platform'
-import { useExtendedHealth } from '@/hooks/use-admin-platform'
-import { Button } from '@/components/ui/Button'
+import {
+  CommandCard,
+  CommandEmptyState,
+  CommandKpi,
+  CommandPagination,
+  CommandTable,
+  CommandTableHead,
+  CommandTd,
+  CommandTh,
+  CommandTr,
+  SectionHeader,
+  StatusChip,
+} from '@/components/admin/control-tower'
+import { useAdminApiKeysPage, useExtendedHealth } from '@/hooks/use-admin-platform'
 
 const PAGE = 25
 
@@ -12,56 +22,54 @@ export function AdminApiPage() {
   const { data: health } = useExtendedHealth(true)
   const rows = data?.rows ?? []
   const total = data?.total ?? 0
+  const authFailures = Number(health?.api_auth_failures_24h ?? 0)
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>API auth (24h)</CardTitle>
-        </CardHeader>
-        <CardContent className="text-sm">
-          Failed auth events: <strong>{String(health?.api_auth_failures_24h ?? '—')}</strong>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>API keys (metadata only)</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isLoading && <p className="text-sm text-[var(--color-muted)]">Loading…</p>}
-          <table className="w-full text-left text-sm">
-            <thead>
-              <tr className="border-b text-xs uppercase text-[var(--color-muted)]">
-                <th className="py-2">Company</th>
-                <th className="py-2">Name</th>
-                <th className="py-2">Prefix</th>
-                <th className="py-2">Active</th>
-                <th className="py-2">Last used</th>
-              </tr>
-            </thead>
+    <div className="space-y-4">
+      <SectionHeader eyebrow="API" title="API keys & auth" className="mb-0" />
+
+      <CommandKpi
+        label="Auth failures (24h)"
+        value={String(authFailures)}
+        color={authFailures >= 20 ? 'red' : authFailures > 0 ? 'amber' : 'green'}
+        className="max-w-xs"
+      />
+
+      <CommandCard>
+        {isLoading ? (
+          <p className="p-4 text-sm text-zinc-500">Loading…</p>
+        ) : rows.length === 0 ? (
+          <CommandEmptyState label="No API keys issued." />
+        ) : (
+          <CommandTable>
+            <CommandTableHead>
+              <CommandTh>Company</CommandTh>
+              <CommandTh>Name</CommandTh>
+              <CommandTh>Prefix</CommandTh>
+              <CommandTh>Status</CommandTh>
+              <CommandTh className="text-right">Last used</CommandTh>
+            </CommandTableHead>
             <tbody>
               {rows.map((r) => (
-                <tr key={String(r.id)} className="border-b">
-                  <td className="py-2">{String(r.company_name)}</td>
-                  <td className="py-2">{String(r.name)}</td>
-                  <td className="py-2 font-mono text-xs">{String(r.key_prefix)}</td>
-                  <td className="py-2">{String(r.is_active)}</td>
-                  <td className="py-2 text-xs">{String(r.last_used_at ?? '—')}</td>
-                </tr>
+                <CommandTr key={String(r.id)}>
+                  <CommandTd>{String(r.company_name)}</CommandTd>
+                  <CommandTd>{String(r.name)}</CommandTd>
+                  <CommandTd className="font-mono text-xs text-zinc-400">{String(r.key_prefix)}···</CommandTd>
+                  <CommandTd>
+                    <StatusChip color={r.is_active ? 'green' : 'gray'} label={r.is_active ? 'active' : 'revoked'} />
+                  </CommandTd>
+                  <CommandTd className="text-right text-xs text-zinc-500">
+                    {r.last_used_at ? new Date(String(r.last_used_at)).toLocaleString() : 'Never'}
+                  </CommandTd>
+                </CommandTr>
               ))}
             </tbody>
-          </table>
-          <p className="mt-2 text-xs text-[var(--color-muted)]">{total} keys</p>
-          <div className="mt-2 flex gap-2">
-            <Button size="sm" variant="outline" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
-              Previous
-            </Button>
-            <Button size="sm" variant="outline" disabled={page * PAGE >= total} onClick={() => setPage((p) => p + 1)}>
-              Next
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+          </CommandTable>
+        )}
+        <div className="px-4 pb-4">
+          <CommandPagination total={total} page={page} pageSize={PAGE} onPage={setPage} loading={isLoading} />
+        </div>
+      </CommandCard>
     </div>
   )
 }

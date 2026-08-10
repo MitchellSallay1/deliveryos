@@ -2,10 +2,22 @@ import { useState } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import { sanitizeIlikeSearchTerm } from '@/lib/postgrest-search'
 import { useQuery } from '@tanstack/react-query'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
-import { Input } from '@/components/ui/Input'
-import { Button } from '@/components/ui/Button'
 import { Link } from 'react-router-dom'
+import {
+  CommandCard,
+  CommandCardBody,
+  CommandEmptyState,
+  CommandInput,
+  CommandPagination,
+  CommandTable,
+  CommandTableHead,
+  CommandTd,
+  CommandTh,
+  CommandTr,
+  SectionHeader,
+  StatusChip,
+} from '@/components/admin/control-tower'
+import { statusColorFor } from '@/lib/admin-control-tower'
 
 const PAGE = 25
 
@@ -32,47 +44,56 @@ export function AdminRidersPage() {
     queryFn: () => listRiders(search, page),
   })
   const rows = data?.rows ?? []
+  const total = data?.total ?? 0
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Platform riders</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Input className="mb-3 max-w-sm" placeholder="Search" value={search} onChange={(e) => setSearch(e.target.value)} />
-        {isLoading && <p className="text-sm text-[var(--color-muted)]">Loading…</p>}
-        <table className="w-full text-left text-sm">
-          <thead>
-            <tr className="border-b text-xs uppercase text-[var(--color-muted)]">
-              <th className="py-2">Rider</th>
-              <th className="py-2">Company</th>
-              <th className="py-2">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((r) => (
-              <tr key={r.id} className="border-b">
-                <td className="py-2">{r.full_name}</td>
-                <td className="py-2">
-                  <Link className="underline" to={`/admin/companies/${r.company_id}`}>
-                    {r.company_id.slice(0, 8)}…
-                  </Link>
-                </td>
-                <td className="py-2 capitalize">{r.status}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <div className="mt-2 flex gap-2">
-          <Button size="sm" variant="outline" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
-            Previous
-          </Button>
-          <Button size="sm" variant="outline" onClick={() => setPage((p) => p + 1)}>
-            Next
-          </Button>
+    <div className="space-y-4">
+      <SectionHeader eyebrow="Riders" title="Platform riders" className="mb-0" />
+      <CommandCard>
+        <CommandCardBody className="border-b border-white/[0.06] pb-4">
+          <CommandInput
+            className="max-w-sm"
+            placeholder="Search rider code, phone, name"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value)
+              setPage(1)
+            }}
+          />
+        </CommandCardBody>
+        {isLoading ? (
+          <p className="p-4 text-sm text-zinc-500">Loading…</p>
+        ) : rows.length === 0 ? (
+          <CommandEmptyState label="No riders match this search." />
+        ) : (
+          <CommandTable>
+            <CommandTableHead>
+              <CommandTh>Rider</CommandTh>
+              <CommandTh>Company</CommandTh>
+              <CommandTh className="text-right">Status</CommandTh>
+            </CommandTableHead>
+            <tbody>
+              {rows.map((r) => (
+                <CommandTr key={r.id}>
+                  <CommandTd>{r.full_name}</CommandTd>
+                  <CommandTd>
+                    <Link className="font-mono text-xs text-zinc-400 hover:text-white hover:underline" to={`/admin/companies/${r.company_id}`}>
+                      {r.company_id.slice(0, 8)}…
+                    </Link>
+                  </CommandTd>
+                  <CommandTd className="text-right">
+                    <StatusChip color={statusColorFor(r.status)} label={r.status} />
+                  </CommandTd>
+                </CommandTr>
+              ))}
+            </tbody>
+          </CommandTable>
+        )}
+        <div className="px-4 pb-4">
+          <CommandPagination total={total} page={page} pageSize={PAGE} onPage={setPage} loading={isLoading} />
         </div>
-      </CardContent>
-    </Card>
+      </CommandCard>
+    </div>
   )
 }
 
@@ -96,34 +117,45 @@ export function AdminUsersPage() {
     queryKey: ['admin', 'users', search, page],
     queryFn: () => listUsers(search, page),
   })
+  const rows = data?.rows ?? []
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Platform users</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Input className="mb-3 max-w-sm" placeholder="Phone or name" value={search} onChange={(e) => setSearch(e.target.value)} />
-        {isLoading && <p className="text-sm text-[var(--color-muted)]">Loading…</p>}
-        <table className="w-full text-left text-sm">
-          <thead>
-            <tr className="border-b text-xs uppercase text-[var(--color-muted)]">
-              <th className="py-2">Name</th>
-              <th className="py-2">Phone</th>
-              <th className="py-2">Super admin</th>
-            </tr>
-          </thead>
-          <tbody>
-            {(data?.rows ?? []).map((u) => (
-              <tr key={u.id} className="border-b">
-                <td className="py-2">{u.full_name ?? '—'}</td>
-                <td className="py-2 font-mono text-xs">{u.phone ?? '—'}</td>
-                <td className="py-2">{u.is_super_admin ? 'Yes' : '—'}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </CardContent>
-    </Card>
+    <div className="space-y-4">
+      <SectionHeader eyebrow="Users" title="Platform users" className="mb-0" />
+      <CommandCard>
+        <CommandCardBody className="border-b border-white/[0.06] pb-4">
+          <CommandInput
+            className="max-w-sm"
+            placeholder="Phone or name"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </CommandCardBody>
+        {isLoading ? (
+          <p className="p-4 text-sm text-zinc-500">Loading…</p>
+        ) : rows.length === 0 ? (
+          <CommandEmptyState label="No users match this search." />
+        ) : (
+          <CommandTable>
+            <CommandTableHead>
+              <CommandTh>Name</CommandTh>
+              <CommandTh>Phone</CommandTh>
+              <CommandTh className="text-right">Super admin</CommandTh>
+            </CommandTableHead>
+            <tbody>
+              {rows.map((u) => (
+                <CommandTr key={u.id}>
+                  <CommandTd>{u.full_name ?? '—'}</CommandTd>
+                  <CommandTd className="font-mono text-xs text-zinc-400">{u.phone ?? '—'}</CommandTd>
+                  <CommandTd className="text-right">
+                    {u.is_super_admin ? <StatusChip color="amber" label="Super admin" /> : <span className="text-zinc-600">—</span>}
+                  </CommandTd>
+                </CommandTr>
+              ))}
+            </tbody>
+          </CommandTable>
+        )}
+      </CommandCard>
+    </div>
   )
 }

@@ -4,7 +4,7 @@ import { ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ADMIN_NAV_GROUPS } from '@/lib/admin-nav'
 
-export function AdminSidebar() {
+export function AdminSidebar({ onNavigate }: { onNavigate?: () => void }) {
   const { pathname } = useLocation()
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(ADMIN_NAV_GROUPS.map((g) => [g.id, true])),
@@ -18,7 +18,7 @@ export function AdminSidebar() {
           <div key={group.id} className="pb-2">
             <button
               type="button"
-              className="flex w-full items-center justify-between rounded-md px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-500 hover:text-slate-300"
+              className="flex w-full items-center justify-between rounded-md px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-500 hover:text-zinc-300"
               onClick={() => setOpenGroups((s) => ({ ...s, [group.id]: !expanded }))}
               aria-expanded={expanded}
             >
@@ -33,11 +33,12 @@ export function AdminSidebar() {
                     <li key={to}>
                       <Link
                         to={to}
+                        onClick={onNavigate}
                         className={cn(
                           'flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors',
                           active
-                            ? 'bg-[var(--color-accent)]/20 text-white'
-                            : 'text-slate-300 hover:bg-white/5 hover:text-white',
+                            ? 'bg-[#FFCB05]/15 text-[#FFCB05] ring-1 ring-inset ring-[#FFCB05]/20'
+                            : 'text-zinc-400 hover:bg-white/5 hover:text-white',
                         )}
                       >
                         <Icon className="h-4 w-4 shrink-0" aria-hidden />
@@ -53,7 +54,8 @@ export function AdminSidebar() {
       })}
       <Link
         to="/dashboard"
-        className="mt-2 block rounded-lg px-3 py-2 text-sm text-slate-400 hover:bg-white/5 hover:text-white"
+        onClick={onNavigate}
+        className="mt-2 block rounded-lg px-3 py-2 text-sm text-zinc-500 hover:bg-white/5 hover:text-white"
       >
         ← Company workspace
       </Link>

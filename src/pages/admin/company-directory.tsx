@@ -1,8 +1,21 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
-import { Input } from '@/components/ui/Input'
-import { Button } from '@/components/ui/Button'
+import {
+  CommandButton,
+  CommandCard,
+  CommandCardBody,
+  CommandEmptyState,
+  CommandInput,
+  CommandPagination,
+  CommandTable,
+  CommandTableHead,
+  CommandTd,
+  CommandTh,
+  CommandTr,
+  SectionHeader,
+  StatusChip,
+} from '@/components/admin/control-tower'
+import { statusColorFor } from '@/lib/admin-control-tower'
 import { useAdminCompaniesPage } from '@/hooks/use-admin-platform'
 import { useAdminCompanyActions } from '@/hooks/use-admin'
 
@@ -31,108 +44,84 @@ export function AdminCompanyDirectoryPage({ title, description, businessType }: 
   const total = data?.total ?? 0
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        <CardDescription>{description}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Input
-          className="mb-3 max-w-sm"
-          placeholder="Search name, phone, email"
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value)
-            setPage(1)
-          }}
-        />
-        {isLoading && <p className="text-sm text-[var(--color-muted)]">Loading…</p>}
-        <DirectoryTable rows={rows} busy={statusMutation.isPending} onStatus={(id, status) => statusMutation.mutate({ id, status })} />
-        <Pager total={total} page={page} pageSize={PAGE} onPage={setPage} />
-      </CardContent>
-    </Card>
-  )
-}
-
-function DirectoryTable({
-  rows,
-  busy,
-  onStatus,
-}: {
-  rows: Record<string, unknown>[]
-  busy: boolean
-  onStatus: (id: string, status: 'pending' | 'active' | 'suspended') => void
-}) {
-  return (
-    <div className="overflow-x-auto">
-      <table className="w-full min-w-[800px] text-left text-sm">
-        <thead>
-          <tr className="border-b text-xs uppercase text-[var(--color-muted)]">
-            <th className="py-2">Company</th>
-            <th className="py-2">Type</th>
-            <th className="py-2">Plan</th>
-            <th className="py-2">Status</th>
-            <th className="py-2">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((c) => (
-            <tr key={String(c.id)} className="border-b">
-              <td className="py-2">
-                <Link className="font-medium text-[var(--color-primary)] hover:underline" to={`/admin/companies/${c.id}`}>
-                  {String(c.name)}
-                </Link>
-              </td>
-              <td className="py-2 text-xs">{String(c.business_type ?? '—')}</td>
-              <td className="py-2 text-xs">{String(c.plan_name ?? '—')}</td>
-              <td className="py-2 capitalize">{String(c.status)}</td>
-              <td className="py-2">
-                <div className="flex flex-wrap gap-1">
-                  {c.status !== 'active' && (
-                    <Button size="sm" disabled={busy} onClick={() => onStatus(String(c.id), 'active')}>
-                      Activate
-                    </Button>
-                  )}
-                  {c.status === 'active' && (
-                    <Button size="sm" variant="outline" disabled={busy} onClick={() => onStatus(String(c.id), 'suspended')}>
-                      Suspend
-                    </Button>
-                  )}
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  )
-}
-
-function Pager({
-  total,
-  page,
-  pageSize,
-  onPage,
-}: {
-  total: number
-  page: number
-  pageSize: number
-  onPage: (p: number) => void
-}) {
-  return (
-    <>
-      <p className="mt-2 text-xs text-[var(--color-muted)]">
-        {total} results · page {page}
-      </p>
-      <div className="mt-2 flex gap-2">
-        <Button size="sm" variant="outline" disabled={page <= 1} onClick={() => onPage(page - 1)}>
-          Previous
-        </Button>
-        <Button size="sm" variant="outline" disabled={page * pageSize >= total} onClick={() => onPage(page + 1)}>
-          Next
-        </Button>
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <SectionHeader eyebrow="Companies" title={title} className="mb-0" />
+        <p className="text-xs text-zinc-500">{description}</p>
       </div>
-    </>
+
+      <CommandCard>
+        <CommandCardBody className="border-b border-white/[0.06] pb-4">
+          <CommandInput
+            className="max-w-sm"
+            placeholder="Search name, phone, email"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value)
+              setPage(1)
+            }}
+          />
+        </CommandCardBody>
+        {isLoading ? (
+          <p className="p-4 text-sm text-zinc-500">Loading…</p>
+        ) : rows.length === 0 ? (
+          <CommandEmptyState label="No companies match this search." />
+        ) : (
+          <CommandTable>
+            <CommandTableHead>
+              <CommandTh>Company</CommandTh>
+              <CommandTh>Type</CommandTh>
+              <CommandTh>Plan</CommandTh>
+              <CommandTh>Status</CommandTh>
+              <CommandTh className="text-right">Actions</CommandTh>
+            </CommandTableHead>
+            <tbody>
+              {rows.map((c) => (
+                <CommandTr key={String(c.id)}>
+                  <CommandTd>
+                    <Link className="font-medium text-zinc-100 hover:text-white hover:underline" to={`/admin/companies/${c.id}`}>
+                      {String(c.name)}
+                    </Link>
+                  </CommandTd>
+                  <CommandTd className="text-xs capitalize text-zinc-400">{String(c.business_type ?? '—').replace(/_/g, ' ')}</CommandTd>
+                  <CommandTd className="text-xs text-zinc-400">{String(c.plan_name ?? '—')}</CommandTd>
+                  <CommandTd>
+                    <StatusChip color={statusColorFor(String(c.status))} label={String(c.status)} />
+                  </CommandTd>
+                  <CommandTd className="text-right">
+                    <div className="flex flex-wrap justify-end gap-1.5">
+                      {c.status !== 'active' && (
+                        <CommandButton
+                          size="sm"
+                          variant="primary"
+                          disabled={statusMutation.isPending}
+                          onClick={() => statusMutation.mutate({ id: String(c.id), status: 'active' })}
+                        >
+                          Activate
+                        </CommandButton>
+                      )}
+                      {c.status === 'active' && (
+                        <CommandButton
+                          size="sm"
+                          variant="destructive"
+                          disabled={statusMutation.isPending}
+                          onClick={() => statusMutation.mutate({ id: String(c.id), status: 'suspended' })}
+                        >
+                          Suspend
+                        </CommandButton>
+                      )}
+                    </div>
+                  </CommandTd>
+                </CommandTr>
+              ))}
+            </tbody>
+          </CommandTable>
+        )}
+        <div className="px-4 pb-4">
+          <CommandPagination total={total} page={page} pageSize={PAGE} onPage={setPage} loading={isLoading} />
+        </div>
+      </CommandCard>
+    </div>
   )
 }
 

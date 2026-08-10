@@ -11,6 +11,7 @@ import {
   fetchLiveSnapshot,
   fetchNetworkMetrics,
   fetchPlatformAlerts,
+  fetchPlatformSecuritySnapshot,
   fetchTrialFunnel,
   listAdminApiKeysPage,
   listAdminCompaniesPage,
@@ -158,6 +159,15 @@ export function useExtendedHealth(enabled = true) {
   return useQuery({
     queryKey: ['admin', 'health-extended'],
     queryFn: fetchExtendedHealthSnapshot,
+    enabled,
+    refetchInterval: 60_000,
+  })
+}
+
+export function useSecuritySnapshot(enabled = true) {
+  return useQuery({
+    queryKey: ['admin', 'security'],
+    queryFn: fetchPlatformSecuritySnapshot,
     enabled,
     refetchInterval: 60_000,
   })

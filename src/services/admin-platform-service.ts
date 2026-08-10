@@ -147,6 +147,10 @@ export function fetchExtendedHealthSnapshot() {
   return rpc<Record<string, unknown>>('get_platform_health_snapshot')
 }
 
+export function fetchPlatformSecuritySnapshot() {
+  return rpc<Record<string, unknown>>('get_platform_security_snapshot')
+}
+
 export async function adminSetCompanyStatus(
   companyId: string,
   status: 'pending' | 'active' | 'suspended',

@@ -980,6 +980,7 @@ export interface Database {
       }
       get_company_onboarding_status: { Args: { p_company_id: string }; Returns: Json }
       get_platform_health_snapshot: { Args: Record<string, never>; Returns: Json }
+      get_platform_security_snapshot: { Args: Record<string, never>; Returns: Json }
       admin_list_webhook_failures: {
         Args: { p_limit?: number; p_offset?: number }
         Returns: Json

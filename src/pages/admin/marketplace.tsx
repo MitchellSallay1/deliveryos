@@ -1,8 +1,14 @@
+import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
-import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
-import { Label } from '@/components/ui/Label'
+import {
+  CommandButton,
+  CommandCard,
+  CommandCardBody,
+  CommandCardHeader,
+  CommandInput,
+  CommandKpi,
+  SectionHeader,
+} from '@/components/admin/control-tower'
 import { getMarketplaceAnalytics } from '@/services/marketplace-service'
 import { supabase } from '@/lib/supabase/client'
 
@@ -12,6 +18,7 @@ export function AdminMarketplacePage() {
     queryFn: () => getMarketplaceAnalytics('platform'),
   })
 
+  const [suspending, setSuspending] = useState(false)
   const qc = useQueryClient()
   const suspendMut = useMutation({
     mutationFn: async (fd: FormData) => {
@@ -23,73 +30,60 @@ export function AdminMarketplacePage() {
         p_disable_provider: fd.get('disable_provider') === 'on',
       })
       if (error) throw error
+      return suspended
     },
     onSuccess: () => void qc.invalidateQueries({ queryKey: ['admin-marketplace-analytics'] }),
   })
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-xl font-semibold">Marketplace control</h2>
-      {isLoading && <p className="text-sm text-[var(--color-muted)]">Loading metrics…</p>}
+    <div className="space-y-4">
+      <SectionHeader eyebrow="Marketplace" title="Marketplace control" className="mb-0" />
+
+      {isLoading && <p className="text-sm text-zinc-500">Loading metrics…</p>}
+
       {platform && (
-        <div className="grid gap-4 sm:grid-cols-3">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm">GMV</CardTitle>
-            </CardHeader>
-            <CardContent className="text-2xl font-semibold">
-              LRD {Number(platform.gmv_lrd_cents ?? 0) / 100}
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm">Platform fees</CardTitle>
-            </CardHeader>
-            <CardContent className="text-2xl font-semibold">
-              LRD {Number(platform.platform_fees_lrd_cents ?? 0) / 100}
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm">Acceptance rate</CardTitle>
-            </CardHeader>
-            <CardContent className="text-2xl font-semibold">
-              {platform.acceptance_rate != null
-                ? `${(Number(platform.acceptance_rate) * 100).toFixed(1)}%`
-                : '—'}
-            </CardContent>
-          </Card>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <CommandKpi label="GMV" value={`LRD ${Number(platform.gmv_lrd_cents ?? 0) / 100}`} />
+          <CommandKpi label="Platform fees" value={`LRD ${Number(platform.platform_fees_lrd_cents ?? 0) / 100}`} />
+          <CommandKpi
+            label="Acceptance rate"
+            value={platform.acceptance_rate != null ? `${(Number(platform.acceptance_rate) * 100).toFixed(1)}%` : '—'}
+          />
         </div>
       )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Suspend marketplace access</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <CommandCard className="max-w-lg">
+        <CommandCardHeader title="Suspend marketplace access" description="Applies immediately to the given company" />
+        <CommandCardBody>
           <form
-            className="grid max-w-md gap-3"
+            className="grid gap-3"
             onSubmit={(e) => {
               e.preventDefault()
               suspendMut.mutate(new FormData(e.currentTarget))
             }}
           >
-            <div className="space-y-2">
-              <Label>Company ID</Label>
-              <Input name="company_id" required />
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-zinc-400">Company ID</label>
+              <CommandInput name="company_id" required />
             </div>
-            <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" name="suspended" /> Marketplace suspended
+            <label className="flex items-center gap-2 text-sm text-zinc-300">
+              <input
+                type="checkbox"
+                name="suspended"
+                className="accent-[#FFCB05]"
+                onChange={(e) => setSuspending(e.target.checked)}
+              />{' '}
+              Marketplace suspended
             </label>
-            <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" name="disable_provider" /> Disable provider network profile
+            <label className="flex items-center gap-2 text-sm text-zinc-300">
+              <input type="checkbox" name="disable_provider" className="accent-[#FFCB05]" /> Disable provider network profile
             </label>
-            <Button type="submit" disabled={suspendMut.isPending}>
-              Apply
-            </Button>
+            <CommandButton type="submit" variant={suspending ? 'destructive' : 'primary'} disabled={suspendMut.isPending}>
+              {suspendMut.isPending ? 'Applying…' : 'Apply'}
+            </CommandButton>
           </form>
-        </CardContent>
-      </Card>
+        </CommandCardBody>
+      </CommandCard>
     </div>
   )
 }
