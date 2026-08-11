@@ -174,3 +174,41 @@ export async function fetchStoreBrief(companyId: string): Promise<StoreBrief | n
   if (error) throw error
   return data
 }
+
+export type CarrierOffer = {
+  offer_id: string
+  carrier_company_id: string
+  carrier_name: string
+  quoted_amount_lrd_cents: number
+  estimated_pickup_minutes: number | null
+  status: string
+  is_selected: boolean
+  expires_at: string | null
+}
+
+export type CommerceOrderDeliveryStatus = {
+  delivery_request: { id: string; status: string } | null
+  offers: CarrierOffer[]
+  delivery: {
+    delivery_id: string
+    tracking_code: string
+    status: string
+    carrier_name: string
+    rider_name: string | null
+  } | null
+}
+
+export async function fetchCommerceOrderDeliveryStatus(orderId: string): Promise<CommerceOrderDeliveryStatus> {
+  const { data, error } = await supabase.rpc('get_commerce_order_delivery_status', { p_order_id: orderId })
+  if (error) throw error
+  return data as unknown as CommerceOrderDeliveryStatus
+}
+
+export async function selectCommerceDeliveryOffer(orderId: string, offerId: string) {
+  const { data, error } = await supabase.rpc('select_commerce_delivery_offer', {
+    p_order_id: orderId,
+    p_offer_id: offerId,
+  })
+  if (error) throw error
+  return data
+}

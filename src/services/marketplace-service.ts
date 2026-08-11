@@ -90,6 +90,29 @@ export async function listMarketplaceProvidersPage(merchantCompanyId: string, of
   return data as unknown as { items: unknown[]; total: number }
 }
 
+export type ProviderMarketplaceProfile = {
+  company_id: string
+  marketplace_enabled: boolean
+  service_description: string | null
+  service_phone: string | null
+  service_email: string | null
+  accepting_jobs: boolean
+  minimum_delivery_fee_lrd_cents: number
+  admin_marketplace_disabled: boolean
+}
+
+export async function fetchProviderMarketplaceProfile(companyId: string): Promise<ProviderMarketplaceProfile | null> {
+  const { data, error } = await supabase
+    .from('provider_marketplace_profiles')
+    .select(
+      'company_id, marketplace_enabled, service_description, service_phone, service_email, accepting_jobs, minimum_delivery_fee_lrd_cents, admin_marketplace_disabled',
+    )
+    .eq('company_id', companyId)
+    .maybeSingle()
+  if (error) throw error
+  return data as unknown as ProviderMarketplaceProfile | null
+}
+
 export async function upsertProviderMarketplaceProfile(payload: Record<string, unknown>) {
   const { data, error } = await supabase.rpc('upsert_provider_marketplace_profile', {
     p_payload: payload as Json,

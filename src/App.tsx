@@ -193,6 +193,9 @@ const MarketplaceJobsPage = lazy(() =>
 const MarketplaceProvidersPage = lazy(() =>
   import('@/pages/marketplace/providers').then((m) => ({ default: m.MarketplaceProvidersPage })),
 )
+const MarketplaceSettingsPage = lazy(() =>
+  import('@/pages/marketplace/settings').then((m) => ({ default: m.MarketplaceSettingsPage })),
+)
 const BillingPage = lazy(() =>
   import('@/pages/billing/index').then((m) => ({ default: m.BillingPage })),
 )
@@ -292,6 +295,7 @@ export function AppRoutes() {
                   <Route path="/deliveries" element={<DeliveriesPage />} />
                   <Route path="/merchant/requests" element={<MerchantRequestsPage />} />
                   <Route path="/marketplace/jobs" element={<MarketplaceJobsPage />} />
+                  <Route path="/marketplace/settings" element={<MarketplaceSettingsPage />} />
                   <Route path="/marketplace/providers" element={<MarketplaceProvidersPage />} />
                   <Route path="/billing" element={<BillingPage />} />
                   <Route path="/vendor" element={<VendorOverviewPage />} />

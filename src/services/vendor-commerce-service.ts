@@ -264,6 +264,10 @@ export type VendorOrder = {
   delivery_instructions: string | null
   delivery_id: string | null
   delivery_status: string | null
+  delivery_request_id: string | null
+  delivery_request_status: string | null
+  pending_offers_count: number | null
+  carrier_name: string | null
   cancelled_at: string | null
   cancellation_reason: string | null
   created_at: string
@@ -291,6 +295,12 @@ export async function vendorAcceptOrder(orderId: string) {
   const { data, error } = await supabase.rpc('vendor_accept_commerce_order', { p_order_id: orderId })
   if (error) throw error
   return data
+}
+
+export async function requestCommerceOrderDelivery(orderId: string) {
+  const { data, error } = await supabase.rpc('request_commerce_order_delivery', { p_order_id: orderId })
+  if (error) throw error
+  return data as unknown as { delivery_request: unknown; offers_created: number; already_existed: boolean }
 }
 
 export async function vendorRejectOrder(orderId: string, reason?: string) {

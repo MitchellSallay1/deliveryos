@@ -143,6 +143,7 @@ export const ROUTE_PERMISSIONS: Record<string, Permission> = {
   '/operations': 'page:operations',
   '/merchant/requests': 'page:merchant-requests',
   '/marketplace/jobs': 'page:marketplace-jobs',
+  '/marketplace/settings': 'page:marketplace-jobs',
   '/marketplace/providers': 'page:marketplace-providers',
   '/billing': 'page:billing',
   '/vendor': 'page:vendor',

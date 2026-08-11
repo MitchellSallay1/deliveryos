@@ -72,6 +72,7 @@ const NAV_GROUPS: NavGroup[] = [
       { to: '/billing', label: 'Billing', icon: CreditCard, permission: 'page:billing' },
       { to: '/merchant/requests', label: 'Delivery requests', icon: Store, permission: 'page:merchant-requests' },
       { to: '/marketplace/jobs', label: 'Marketplace jobs', icon: Network, permission: 'page:marketplace-jobs' },
+      { to: '/marketplace/settings', label: 'Marketplace settings', icon: Settings, permission: 'page:marketplace-jobs' },
       { to: '/marketplace/providers', label: 'Providers', icon: Users, permission: 'page:marketplace-providers' },
     ],
   },

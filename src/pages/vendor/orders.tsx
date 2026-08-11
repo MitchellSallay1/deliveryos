@@ -27,24 +27,26 @@ function maskedPhone(phone: string): string {
 
 function OrderCard({ order }: { order: VendorOrder }) {
   const { companyId } = useVendorContext()
-  const { accept, reject, markPreparing, markReady } = useVendorOrderActions(companyId)
+  const { accept, reject, markPreparing, markReady, requestDelivery } = useVendorOrderActions(companyId)
   const [error, setError] = useState<string | null>(null)
   const [showPhone, setShowPhone] = useState(false)
   const actions = availableOrderActions(order.fulfillment_status, order.payment_status, order.payment_method)
 
-  async function run(action: 'accept' | 'reject' | 'preparing' | 'ready') {
+  async function run(action: 'accept' | 'reject' | 'preparing' | 'ready' | 'request-delivery') {
     setError(null)
     try {
       if (action === 'accept') await accept.mutateAsync(order.id)
       if (action === 'reject') await reject.mutateAsync({ orderId: order.id })
       if (action === 'preparing') await markPreparing.mutateAsync(order.id)
       if (action === 'ready') await markReady.mutateAsync(order.id)
+      if (action === 'request-delivery') await requestDelivery.mutateAsync(order.id)
     } catch (err) {
       setError(parseSupabaseError(err))
     }
   }
 
-  const pending = accept.isPending || reject.isPending || markPreparing.isPending || markReady.isPending
+  const pending =
+    accept.isPending || reject.isPending || markPreparing.isPending || markReady.isPending || requestDelivery.isPending
 
   return (
     <Card>
@@ -62,6 +64,7 @@ function OrderCard({ order }: { order: VendorOrder }) {
               {orderPaymentStatusLabel(order.payment_status)}
             </Badge>
             {order.delivery_status && <Badge variant="outline">Delivery: {order.delivery_status}</Badge>}
+            {order.carrier_name && <Badge variant="outline">Carrier: {order.carrier_name}</Badge>}
           </div>
         </div>
 
@@ -134,6 +137,24 @@ function OrderCard({ order }: { order: VendorOrder }) {
         )}
         {order.fulfillment_status === 'awaiting_vendor' && order.payment_method === 'cod' && order.payment_status === 'pending_payment' && (
           <p className="text-xs text-[var(--color-muted)]">Cash on Delivery — collect payment when the order is delivered.</p>
+        )}
+
+        {order.fulfillment_status === 'ready_for_pickup' && !order.delivery_request_id && (
+          <div className="border-t pt-3">
+            <Button type="button" size="sm" disabled={pending} onClick={() => void run('request-delivery')}>
+              Request delivery
+            </Button>
+            <p className="mt-1 text-xs text-[var(--color-muted)]">
+              Sends this order to available delivery carriers using your store&apos;s pickup location.
+            </p>
+          </div>
+        )}
+        {order.delivery_request_id && !order.delivery_id && (
+          <p className="border-t pt-3 text-xs text-[var(--color-muted)]">
+            {order.pending_offers_count && order.pending_offers_count > 0
+              ? `Delivery requested — ${order.pending_offers_count} carrier offer${order.pending_offers_count === 1 ? '' : 's'} available. Waiting for the customer to choose a carrier.`
+              : 'Delivery requested — no carriers available yet.'}
+          </p>
         )}
       </CardContent>
     </Card>

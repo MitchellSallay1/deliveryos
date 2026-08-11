@@ -17,6 +17,8 @@ type JobRow = {
   destination_area_summary?: string
   fragile?: boolean
   cod_amount_lrd_cents?: number
+  is_commerce_order?: boolean
+  awaiting_customer_selection?: boolean
 }
 
 export function MarketplaceJobsPage() {
@@ -92,16 +94,24 @@ export function MarketplaceJobsPage() {
                 <div>
                   <p className="font-medium">
                     LRD {(job.quoted_amount_lrd_cents ?? 0) / 100} · {job.offer_status}
+                    {job.is_commerce_order && (
+                      <span className="ml-2 inline-flex items-center rounded-full bg-[var(--color-accent)] px-2 py-0.5 text-xs font-medium text-black">
+                        Commerce order
+                      </span>
+                    )}
                   </p>
                   <p className="text-sm text-[var(--color-muted)]">
                     {job.pickup_area_summary ?? 'Pickup area'} →{' '}
                     {job.destination_area_summary ?? 'Destination area'}
                     {job.fragile ? ' · Fragile' : ''}
                   </p>
+                  {job.awaiting_customer_selection && (
+                    <p className="text-xs text-amber-700">Waiting for the customer to choose a carrier.</p>
+                  )}
                 </div>
                 {job.offer_status === 'pending' && (
                   <div className="flex gap-2">
-                    <Button size="sm" onClick={() => acceptMut.mutate(job.offer_id)}>
+                    <Button size="sm" disabled={job.awaiting_customer_selection} onClick={() => acceptMut.mutate(job.offer_id)}>
                       Accept
                     </Button>
                     <Button

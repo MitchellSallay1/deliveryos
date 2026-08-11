@@ -470,6 +470,27 @@ export interface Database {
         Update: Record<string, never>
         Relationships: []
       }
+      provider_marketplace_profiles: {
+        Row: {
+          company_id: string
+          marketplace_enabled: boolean
+          service_description: string | null
+          service_phone: string | null
+          service_email: string | null
+          service_regions: Json
+          accepting_jobs: boolean
+          minimum_delivery_fee_lrd_cents: number
+          maximum_service_distance_km: number | null
+          rating_visible: boolean
+          business_hours: Json
+          admin_marketplace_disabled: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: Record<string, never>
+        Update: Record<string, never>
+        Relationships: []
+      }
       store_profiles: {
         Row: {
           company_id: string
@@ -601,6 +622,7 @@ export interface Database {
           delivery_longitude: number | null
           delivery_instructions: string | null
           delivery_id: string | null
+          delivery_request_id: string | null
           cancelled_at: string | null
           cancellation_reason: string | null
           created_at: string
@@ -1189,6 +1211,9 @@ export interface Database {
         Args: { p_offer_id: string; p_provider_company_id: string }
         Returns: Json
       }
+      request_commerce_order_delivery: { Args: { p_order_id: string }; Returns: Json }
+      select_commerce_delivery_offer: { Args: { p_order_id: string; p_offer_id: string }; Returns: Json }
+      get_commerce_order_delivery_status: { Args: { p_order_id: string }; Returns: Json }
       reject_marketplace_offer: {
         Args: { p_offer_id: string; p_provider_company_id: string }
         Returns: Json

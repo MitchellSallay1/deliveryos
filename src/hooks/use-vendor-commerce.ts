@@ -10,6 +10,7 @@ import {
   fetchVendorOrders,
   fetchVendorOverview,
   fetchVendorProducts,
+  requestCommerceOrderDelivery,
   submitStoreProfileForReview,
   upsertProduct,
   upsertProductCategory,
@@ -159,6 +160,7 @@ export function useVendorOrderActions(companyId: string | null) {
     }),
     markPreparing: useMutation({ mutationFn: vendorMarkOrderPreparing, onSuccess: invalidate }),
     markReady: useMutation({ mutationFn: vendorMarkOrderReady, onSuccess: invalidate }),
+    requestDelivery: useMutation({ mutationFn: requestCommerceOrderDelivery, onSuccess: invalidate }),
   }
 }
 
