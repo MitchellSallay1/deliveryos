@@ -484,6 +484,7 @@ export interface Database {
           rating_visible: boolean
           business_hours: Json
           admin_marketplace_disabled: boolean
+          delivery_pricing_configured_at: string | null
           created_at: string
           updated_at: string
         }
@@ -642,6 +643,95 @@ export interface Database {
           quantity: number
           selected_options: Json
           line_total_lrd_cents: number
+          created_at: string
+        }
+        Insert: Record<string, never>
+        Update: Record<string, never>
+        Relationships: []
+      }
+      commerce_fee_rules: {
+        Row: {
+          id: string
+          name: string
+          fee_model: 'fixed' | 'percentage' | 'subscription_only' | 'zero_commission'
+          fixed_fee_lrd_cents: number
+          percentage_bps: number
+          is_active: boolean
+          is_platform_default: boolean
+          applies_to_vendor_company_id: string | null
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: Record<string, never>
+        Update: Record<string, never>
+        Relationships: []
+      }
+      commerce_financial_events: {
+        Row: {
+          id: string
+          event_type: 'cod_collected' | 'reversal' | 'adjustment'
+          commerce_order_id: string
+          delivery_id: string | null
+          payment_id: string | null
+          reverses_event_id: string | null
+          idempotency_key: string
+          snapshot: Json
+          reason: string | null
+          created_by: string | null
+          created_at: string
+        }
+        Insert: Record<string, never>
+        Update: Record<string, never>
+        Relationships: []
+      }
+      commerce_ledger_entries: {
+        Row: {
+          id: string
+          financial_event_id: string
+          account_type: 'cod_clearing' | 'vendor_payable' | 'carrier_payable' | 'platform_revenue'
+          direction: 'debit' | 'credit'
+          company_id: string | null
+          amount_lrd_cents: number
+          currency: string
+          description: string | null
+          settlement_id: string | null
+          created_at: string
+        }
+        Insert: Record<string, never>
+        Update: Record<string, never>
+        Relationships: []
+      }
+      commerce_settlements: {
+        Row: {
+          id: string
+          payee_type: 'vendor' | 'carrier'
+          payee_company_id: string
+          status: 'pending' | 'processing' | 'settled' | 'failed' | 'reversed'
+          total_amount_lrd_cents: number
+          currency: string
+          external_reference: string | null
+          notes: string | null
+          created_by: string | null
+          created_at: string
+          settled_by: string | null
+          settled_at: string | null
+          failed_by: string | null
+          failed_at: string | null
+          reversed_by: string | null
+          reversed_at: string | null
+          updated_at: string
+        }
+        Insert: Record<string, never>
+        Update: Record<string, never>
+        Relationships: []
+      }
+      commerce_settlement_items: {
+        Row: {
+          id: string
+          settlement_id: string
+          ledger_entry_id: string
+          amount_lrd_cents: number
           created_at: string
         }
         Insert: Record<string, never>
@@ -1109,6 +1199,47 @@ export interface Database {
         Returns: Json
       }
       get_vendor_commerce_overview: { Args: { p_vendor_company_id: string }; Returns: Json }
+      get_vendor_commerce_finance: { Args: { p_vendor_company_id: string }; Returns: Json }
+      get_carrier_commerce_finance: { Args: { p_carrier_company_id: string }; Returns: Json }
+      list_commerce_settlements: {
+        Args: {
+          p_payee_type?: string | null
+          p_payee_company_id?: string | null
+          p_status?: string | null
+          p_limit?: number
+          p_offset?: number
+        }
+        Returns: Json
+      }
+      get_admin_commerce_finance_overview: {
+        Args: {
+          p_from?: string | null
+          p_to?: string | null
+          p_vendor_company_id?: string | null
+          p_carrier_company_id?: string | null
+        }
+        Returns: Json
+      }
+      admin_list_commerce_financial_events: { Args: { p_limit?: number; p_offset?: number }; Returns: Json }
+      admin_create_commerce_settlement: {
+        Args: { p_payee_type: string; p_payee_company_id: string; p_notes?: string | null }
+        Returns: Json
+      }
+      admin_mark_commerce_settlement_processing: { Args: { p_settlement_id: string }; Returns: Json }
+      admin_record_commerce_settlement_reference: {
+        Args: { p_settlement_id: string; p_external_reference: string; p_notes?: string | null }
+        Returns: Json
+      }
+      admin_mark_commerce_settlement_completed: { Args: { p_settlement_id: string }; Returns: Json }
+      admin_mark_commerce_settlement_failed: {
+        Args: { p_settlement_id: string; p_reason?: string | null }
+        Returns: Json
+      }
+      admin_reverse_commerce_settlement: {
+        Args: { p_settlement_id: string; p_reason?: string | null }
+        Returns: Json
+      }
+      admin_upsert_commerce_fee_rule: { Args: { p_payload: Json }; Returns: Json }
       admin_set_vendor_state: {
         Args: { p_company_id: string; p_state: string; p_reason?: string | null }
         Returns: Json

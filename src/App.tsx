@@ -132,6 +132,12 @@ const AdminAuditPage = lazy(() =>
 const AdminMarketplacePage = lazy(() =>
   import('@/pages/admin/marketplace').then((m) => ({ default: m.AdminMarketplacePage })),
 )
+const AdminCommerceFinancePage = lazy(() =>
+  import('@/pages/admin/commerce-finance').then((m) => ({ default: m.AdminCommerceFinancePage })),
+)
+const AdminCommerceFeeRulesPage = lazy(() =>
+  import('@/pages/admin/commerce-fee-rules').then((m) => ({ default: m.AdminCommerceFeeRulesPage })),
+)
 const AdminWebhooksPage = lazy(() =>
   import('@/pages/admin/webhooks').then((m) => ({ default: m.AdminWebhooksPage })),
 )
@@ -195,6 +201,9 @@ const MarketplaceProvidersPage = lazy(() =>
 )
 const MarketplaceSettingsPage = lazy(() =>
   import('@/pages/marketplace/settings').then((m) => ({ default: m.MarketplaceSettingsPage })),
+)
+const MarketplaceFinancePage = lazy(() =>
+  import('@/pages/marketplace/finance').then((m) => ({ default: m.MarketplaceFinancePage })),
 )
 const BillingPage = lazy(() =>
   import('@/pages/billing/index').then((m) => ({ default: m.BillingPage })),
@@ -296,6 +305,7 @@ export function AppRoutes() {
                   <Route path="/merchant/requests" element={<MerchantRequestsPage />} />
                   <Route path="/marketplace/jobs" element={<MarketplaceJobsPage />} />
                   <Route path="/marketplace/settings" element={<MarketplaceSettingsPage />} />
+                  <Route path="/marketplace/finance" element={<MarketplaceFinancePage />} />
                   <Route path="/marketplace/providers" element={<MarketplaceProvidersPage />} />
                   <Route path="/billing" element={<BillingPage />} />
                   <Route path="/vendor" element={<VendorOverviewPage />} />
@@ -352,6 +362,8 @@ export function AppRoutes() {
             <Route path="/admin/audit" element={<AdminAuditPage />} />
             <Route path="/admin/security" element={<AdminSecurityPage />} />
             <Route path="/admin/marketplace" element={<AdminMarketplacePage />} />
+            <Route path="/admin/commerce-finance" element={<AdminCommerceFinancePage />} />
+            <Route path="/admin/commerce-fee-rules" element={<AdminCommerceFeeRulesPage />} />
             <Route path="/admin/webhooks" element={<AdminWebhooksPage />} />
             <Route path="/admin/support" element={<AdminSupportPage />} />
             <Route path="/admin/jobs" element={<AdminJobsPage />} />

@@ -56,6 +56,13 @@ const ERROR_MESSAGES: Record<string, string> = {
   provider_network_not_enabled: 'The delivery network is not enabled on this plan.',
   provider_not_accepting_jobs: 'This carrier is not currently accepting jobs.',
   marketplace_profile_not_enabled: 'This carrier has not enabled marketplace delivery.',
+  invalid_payee_type: 'That is not a valid settlement payee type.',
+  no_unsettled_payables: 'There is nothing unsettled to include in a new settlement right now.',
+  settlement_not_found: 'That settlement could not be found.',
+  invalid_settlement_state: 'That settlement is not in a state where this action is allowed.',
+  no_financial_event_to_reverse: 'There is no recognized payment for this order to reverse.',
+  fee_rule_not_found: 'That fee rule could not be found.',
+  already_settled: 'That transaction has already been settled.',
   invitation_invalid: 'This invitation link is invalid or has expired.',
   invitation_email_mismatch:
     'Sign in with the email address that received this invitation.',

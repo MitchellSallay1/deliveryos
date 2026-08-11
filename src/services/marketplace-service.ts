@@ -99,13 +99,14 @@ export type ProviderMarketplaceProfile = {
   accepting_jobs: boolean
   minimum_delivery_fee_lrd_cents: number
   admin_marketplace_disabled: boolean
+  delivery_pricing_configured_at: string | null
 }
 
 export async function fetchProviderMarketplaceProfile(companyId: string): Promise<ProviderMarketplaceProfile | null> {
   const { data, error } = await supabase
     .from('provider_marketplace_profiles')
     .select(
-      'company_id, marketplace_enabled, service_description, service_phone, service_email, accepting_jobs, minimum_delivery_fee_lrd_cents, admin_marketplace_disabled',
+      'company_id, marketplace_enabled, service_description, service_phone, service_email, accepting_jobs, minimum_delivery_fee_lrd_cents, admin_marketplace_disabled, delivery_pricing_configured_at',
     )
     .eq('company_id', companyId)
     .maybeSingle()

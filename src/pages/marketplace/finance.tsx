@@ -1,9 +1,7 @@
 import { Badge } from '@/components/ui/Badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
-import { PageHeader } from '@/components/ui/PageHeader'
-import { VendorGuard } from '@/components/vendor/VendorGuard'
-import { useVendorContext } from '@/hooks/use-vendor-context'
-import { useCommerceSettlements, useVendorCommerceFinance } from '@/hooks/use-commerce-finance'
+import { useAuth } from '@/hooks/use-auth'
+import { useCarrierCommerceFinance, useCommerceSettlements } from '@/hooks/use-commerce-finance'
 import { parseSupabaseError } from '@/lib/supabase-errors'
 import { formatLrdFromCents } from '@/utils/delivery-schemas'
 
@@ -21,17 +19,21 @@ function KpiCard({ label, value, hint }: { label: string; value: string; hint?: 
   )
 }
 
-function VendorFinanceContent() {
-  const { companyId } = useVendorContext()
-  const { data: finance, isLoading, error } = useVendorCommerceFinance(companyId)
-  const { data: settlements } = useCommerceSettlements({ payeeType: 'vendor', payeeCompanyId: companyId ?? undefined, page: 1 })
+export function MarketplaceFinancePage() {
+  const { context } = useAuth()
+  const companyId = context?.activeCompanyId ?? null
+  const { data: finance, isLoading, error } = useCarrierCommerceFinance(companyId)
+  const { data: settlements } = useCommerceSettlements({ payeeType: 'carrier', payeeCompanyId: companyId ?? undefined, page: 1 })
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6 animate-fade-in">
-      <PageHeader
-        title="Vendor finance"
-        description="Real figures from recognized Commerce COD collections — nothing here is estimated or projected."
-      />
+    <div className="mx-auto max-w-3xl space-y-6">
+      <div>
+        <h2 className="text-xl font-semibold">Commerce delivery earnings</h2>
+        <p className="text-sm text-[var(--color-muted)]">
+          Real figures from Commerce orders where cash-on-delivery was actually collected — separate from your overall
+          marketplace GMV shown on the jobs page, since COD earnings aren&apos;t real until the cash is in hand.
+        </p>
+      </div>
 
       {error && <p className="text-sm text-red-600">{parseSupabaseError(error)}</p>}
       {isLoading && <p className="text-sm text-[var(--color-muted)]">Loading…</p>}
@@ -40,19 +42,19 @@ function VendorFinanceContent() {
         <>
           <div className="grid gap-4 sm:grid-cols-2">
             <KpiCard
-              label="Gross merchandise value"
-              value={formatLrdFromCents(finance.vendor_gross_lrd_cents)}
-              hint="Sum of product subtotals on orders where COD was actually collected"
+              label="Delivery earnings collected"
+              value={formatLrdFromCents(finance.carrier_gross_lrd_cents)}
+              hint="Sum of delivery fees on Commerce orders you actually delivered and were paid COD for"
             />
             <KpiCard
-              label="DeliveryOS fees"
+              label="Platform fees charged"
               value={formatLrdFromCents(finance.platform_fees_lrd_cents)}
-              hint="Platform commission on merchandise, per your current fee rule"
+              hint="DeliveryOS marketplace commission on your delivery fee"
             />
             <KpiCard
-              label="Net earnings"
+              label="Net payable"
               value={formatLrdFromCents(finance.net_earnings_lrd_cents)}
-              hint="Gross merchandise value minus DeliveryOS fees"
+              hint="Delivery earnings minus platform fees"
             />
             <KpiCard
               label="Pending settlement"
@@ -73,21 +75,20 @@ function VendorFinanceContent() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Order-level breakdown</CardTitle>
-              <CardDescription>Every recognized order — cancelled/refunded orders never appear here.</CardDescription>
+              <CardTitle>Delivery-level breakdown</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              {finance.orders.length === 0 && <p className="text-sm text-[var(--color-muted)]">No recognized orders yet.</p>}
-              {finance.orders.map((o) => (
-                <div key={o.order_id} className="flex items-center justify-between border-b py-2 text-sm last:border-0">
+              {finance.deliveries.length === 0 && <p className="text-sm text-[var(--color-muted)]">No recognized deliveries yet.</p>}
+              {finance.deliveries.map((d) => (
+                <div key={d.delivery_id} className="flex items-center justify-between border-b py-2 text-sm last:border-0">
                   <div>
-                    <p className="font-medium">{o.order_number}</p>
-                    <p className="text-xs text-[var(--color-muted)]">{new Date(o.recognized_at).toLocaleString()}</p>
+                    <p className="font-medium">{d.tracking_code}</p>
+                    <p className="text-xs text-[var(--color-muted)]">{new Date(d.recognized_at).toLocaleString()}</p>
                   </div>
                   <div className="text-right">
-                    <p className="tabular-nums">{formatLrdFromCents(o.vendor_net_lrd_cents)} net</p>
+                    <p className="tabular-nums">{formatLrdFromCents(d.carrier_net_lrd_cents)} net</p>
                     <p className="text-xs text-[var(--color-muted)] tabular-nums">
-                      {formatLrdFromCents(o.vendor_gross_lrd_cents)} gross − {formatLrdFromCents(o.vendor_platform_fee_lrd_cents)} fee
+                      {formatLrdFromCents(d.carrier_gross_lrd_cents)} gross − {formatLrdFromCents(d.carrier_platform_fee_lrd_cents)} fee
                     </p>
                   </div>
                 </div>
@@ -123,13 +124,5 @@ function VendorFinanceContent() {
         </>
       )}
     </div>
-  )
-}
-
-export function VendorFinancePage() {
-  return (
-    <VendorGuard>
-      <VendorFinanceContent />
-    </VendorGuard>
   )
 }

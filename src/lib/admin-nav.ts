@@ -13,6 +13,7 @@ import {
   MessageSquare,
   Network,
   Package,
+  Percent,
   Radio,
   Receipt,
   Shield,
@@ -20,6 +21,7 @@ import {
   Tags,
   Truck,
   Users,
+  Wallet,
   Webhook,
   Wrench,
 } from 'lucide-react'
@@ -79,6 +81,8 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
       { to: '/admin/subscriptions', label: 'Subscriptions', icon: Receipt },
       { to: '/admin/invoices', label: 'Invoices', icon: FileText },
       { to: '/admin/payments', label: 'Payments', icon: CreditCard },
+      { to: '/admin/commerce-finance', label: 'Commerce Finance', icon: Wallet },
+      { to: '/admin/commerce-fee-rules', label: 'Commerce Fee Rules', icon: Percent },
     ],
   },
   {

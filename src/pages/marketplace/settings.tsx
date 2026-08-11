@@ -118,6 +118,13 @@ export function MarketplaceSettingsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-2">
+          {!profile?.delivery_pricing_configured_at && (
+            <p className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
+              You haven&apos;t set your delivery pricing yet. Until you save a value here (even 0), your company will
+              not receive any Commerce delivery offers — an unconfigured price is never treated as &ldquo;free
+              delivery&rdquo; automatically.
+            </p>
+          )}
           <Label htmlFor="min-fee">Minimum delivery fee (LRD)</Label>
           <Input
             id="min-fee"
@@ -132,8 +139,14 @@ export function MarketplaceSettingsPage() {
           />
           {feeIsZero && (
             <p className="text-sm text-amber-700">
-              A minimum fee of 0 means you are offering free delivery on every job you&apos;re matched to. Only save
-              this if that&apos;s intentional.
+              A minimum fee of 0 means you are intentionally offering free delivery on every job you&apos;re matched
+              to. Only save this if that&apos;s what you mean — once saved, it counts as a deliberate choice, not a
+              default.
+            </p>
+          )}
+          {profile?.delivery_pricing_configured_at && (
+            <p className="text-xs text-[var(--color-muted)]">
+              Pricing last configured {new Date(profile.delivery_pricing_configured_at).toLocaleString()}.
             </p>
           )}
         </CardContent>
