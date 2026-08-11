@@ -1061,6 +1061,10 @@ export interface Database {
         Args: { p_cart_id: string; p_product_id: string; p_quantity: number; p_selected_options?: Json }
         Returns: Json
       }
+      update_cart_item_quantity: { Args: { p_cart_item_id: string; p_quantity: number }; Returns: Json }
+      remove_cart_item: { Args: { p_cart_item_id: string }; Returns: undefined }
+      get_public_store_catalog: { Args: { p_slug: string }; Returns: Json }
+      get_cart_summary: { Args: { p_cart_id: string }; Returns: Json }
       submit_commerce_order: {
         Args: {
           p_cart_id: string

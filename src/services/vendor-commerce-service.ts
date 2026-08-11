@@ -2,6 +2,7 @@ import { supabase } from '@/lib/supabase/client'
 import type {
   CommerceOrderFulfillmentStatus,
   CommerceOrderPaymentStatus,
+  CommercePaymentMethod,
   CommerceProductStatus,
   CommerceVendorState,
   Json,
@@ -253,6 +254,7 @@ export type VendorOrder = {
   delivery_fee_lrd_cents: number
   total_lrd_cents: number
   currency: string
+  payment_method: CommercePaymentMethod
   payment_status: CommerceOrderPaymentStatus
   fulfillment_status: CommerceOrderFulfillmentStatus
   customer_name: string

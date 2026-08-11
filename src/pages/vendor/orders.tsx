@@ -30,7 +30,7 @@ function OrderCard({ order }: { order: VendorOrder }) {
   const { accept, reject, markPreparing, markReady } = useVendorOrderActions(companyId)
   const [error, setError] = useState<string | null>(null)
   const [showPhone, setShowPhone] = useState(false)
-  const actions = availableOrderActions(order.fulfillment_status, order.payment_status)
+  const actions = availableOrderActions(order.fulfillment_status, order.payment_status, order.payment_method)
 
   async function run(action: 'accept' | 'reject' | 'preparing' | 'ready') {
     setError(null)
@@ -129,8 +129,11 @@ function OrderCard({ order }: { order: VendorOrder }) {
             )}
           </div>
         )}
-        {order.payment_status !== 'paid' && order.fulfillment_status === 'awaiting_vendor' && (
+        {order.fulfillment_status === 'awaiting_vendor' && !actions.includes('accept') && (
           <p className="text-xs text-amber-700">Waiting on payment confirmation before this order can be accepted.</p>
+        )}
+        {order.fulfillment_status === 'awaiting_vendor' && order.payment_method === 'cod' && order.payment_status === 'pending_payment' && (
+          <p className="text-xs text-[var(--color-muted)]">Cash on Delivery — collect payment when the order is delivered.</p>
         )}
       </CardContent>
     </Card>

@@ -9,6 +9,7 @@
 import type {
   CommerceOrderFulfillmentStatus,
   CommerceOrderPaymentStatus,
+  CommercePaymentMethod,
   CommerceProductStatus,
   CommerceVendorState,
 } from '@/types/supabase'
@@ -130,18 +131,24 @@ export function orderFulfillmentStatusVariant(status: CommerceOrderFulfillmentSt
  * mirrors the server-side state machine exactly (awaiting_vendor ->
  * vendor_accepted -> preparing -> ready_for_pickup, or awaiting_vendor ->
  * vendor_rejected) so the UI never offers a button the RPC would reject.
- * Acceptance additionally requires payment_status = 'paid'.
+ * Acceptance eligibility mirrors commerce_order_payment_eligible_for_acceptance
+ * (Phase B.5): COD is acceptable while pending_payment OR already paid —
+ * payment is legitimately still due on delivery — while every other
+ * payment method requires payment_status = 'paid' first.
  */
 export function availableOrderActions(
   fulfillmentStatus: CommerceOrderFulfillmentStatus,
   paymentStatus: CommerceOrderPaymentStatus,
+  paymentMethod: CommercePaymentMethod,
 ): Array<'accept' | 'reject' | 'preparing' | 'ready'> {
   if (fulfillmentStatus !== 'awaiting_vendor') {
     if (fulfillmentStatus === 'vendor_accepted') return ['preparing']
     if (fulfillmentStatus === 'preparing') return ['ready']
     return []
   }
-  return paymentStatus === 'paid' ? ['accept', 'reject'] : ['reject']
+  const paymentEligible =
+    paymentMethod === 'cod' ? paymentStatus === 'pending_payment' || paymentStatus === 'paid' : paymentStatus === 'paid'
+  return paymentEligible ? ['accept', 'reject'] : ['reject']
 }
 
 /** Vendor order inbox tabs — each maps to real fulfillment_status value(s), never a fabricated bucket. */

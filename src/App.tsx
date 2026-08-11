@@ -220,6 +220,12 @@ const VendorSettingsPage = lazy(() =>
 const AdminVendorsPage = lazy(() =>
   import('@/pages/admin/vendors').then((m) => ({ default: m.AdminVendorsPage })),
 )
+const StorePage = lazy(() => import('@/pages/store/index').then((m) => ({ default: m.StorePage })))
+const StoreCheckoutPage = lazy(() =>
+  import('@/pages/store/checkout').then((m) => ({ default: m.StoreCheckoutPage })),
+)
+const OrderHistoryPage = lazy(() => import('@/pages/orders/index').then((m) => ({ default: m.OrderHistoryPage })))
+const OrderDetailPage = lazy(() => import('@/pages/orders/detail').then((m) => ({ default: m.OrderDetailPage })))
 
 function PageFallback() {
   return (
@@ -245,6 +251,13 @@ export function AppRoutes() {
         <Route path="/track/:code" element={<TrackPage />} />
         <Route path="/invite/:token" element={<InvitePage />} />
         <Route path="/rider/invite/:code" element={<RiderInvitePage />} />
+
+        {/* Commerce customer storefront — public, no dashboard chrome. Phone
+            OTP verification (not company login) gates checkout/order pages. */}
+        <Route path="/store/:slug" element={<StorePage />} />
+        <Route path="/store/:slug/checkout" element={<StoreCheckoutPage />} />
+        <Route path="/orders" element={<OrderHistoryPage />} />
+        <Route path="/orders/:id" element={<OrderDetailPage />} />
 
         <Route element={<MarketingLayout />}>
           <Route path="/" element={<MarketingRootPage />} />
