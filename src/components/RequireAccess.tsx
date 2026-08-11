@@ -35,7 +35,9 @@ export function RequireAccess({
               ? ('page:merchant-requests' as Permission)
               : pathname.startsWith('/marketplace')
                 ? ('page:marketplace-jobs' as Permission)
-                : undefined))
+                : pathname.startsWith('/vendor')
+                  ? ('page:vendor' as Permission)
+                  : undefined))
       : undefined)
 
   if (required && !can(role, required)) {

@@ -39,6 +39,8 @@ export type Permission =
   | 'page:marketplace-jobs'
   | 'page:marketplace-providers'
   | 'page:billing'
+  | 'page:vendor'
+  | 'page:vendor:write'
   | 'page:admin'
   | 'page:admin-companies'
   | 'page:admin-marketplace'
@@ -47,6 +49,7 @@ export type Permission =
   | 'action:delivery:transition'
   | 'action:photo:upload'
   | 'action:payment:deposit'
+  | 'action:vendor-order:fulfill'
 
 const ROLE_PERMISSIONS: Record<AppRole, Permission[]> = {
   super_admin: [
@@ -77,11 +80,14 @@ const ROLE_PERMISSIONS: Record<AppRole, Permission[]> = {
     'page:marketplace-jobs',
     'page:marketplace-providers',
     'page:billing',
+    'page:vendor',
+    'page:vendor:write',
     'action:delivery:create',
     'action:delivery:assign',
     'action:delivery:transition',
     'action:photo:upload',
     'action:payment:deposit',
+    'action:vendor-order:fulfill',
   ],
   dispatcher: [
     'page:dashboard',
@@ -99,11 +105,14 @@ const ROLE_PERMISSIONS: Record<AppRole, Permission[]> = {
     'page:merchant-requests',
     'page:marketplace-jobs',
     'page:marketplace-providers',
+    'page:vendor',
+    'page:vendor:write',
     'action:delivery:create',
     'action:delivery:assign',
     'action:delivery:transition',
     'action:photo:upload',
     'action:payment:deposit',
+    'action:vendor-order:fulfill',
   ],
   support_staff: [
     'page:dashboard',
@@ -113,6 +122,8 @@ const ROLE_PERMISSIONS: Record<AppRole, Permission[]> = {
     'page:reports',
     'page:notifications',
     'page:settings',
+    'page:vendor',
+    'action:vendor-order:fulfill',
   ],
   rider: ['page:my-jobs', 'page:rider-profile', 'action:photo:upload', 'action:delivery:transition'],
 }
@@ -134,6 +145,7 @@ export const ROUTE_PERMISSIONS: Record<string, Permission> = {
   '/marketplace/jobs': 'page:marketplace-jobs',
   '/marketplace/providers': 'page:marketplace-providers',
   '/billing': 'page:billing',
+  '/vendor': 'page:vendor',
   '/admin': 'page:admin',
   '/admin/companies': 'page:admin-companies',
   '/admin/marketplace': 'page:admin-marketplace',
@@ -150,6 +162,13 @@ const MERCHANT_PORTAL_PERMISSIONS: Permission[] = [
   'page:marketplace-providers',
 ]
 
+/** Commerce vendor portal — visible for merchant and hybrid companies, hidden for pure logistics_provider (mirrors MERCHANT_PORTAL_PERMISSIONS). */
+const VENDOR_PORTAL_PERMISSIONS: Permission[] = [
+  'page:vendor',
+  'page:vendor:write',
+  'action:vendor-order:fulfill',
+]
+
 export function isNavVisibleForBusinessType(
   permission: Permission,
   businessType: CompanyBusinessType | null | undefined,
@@ -159,7 +178,7 @@ export function isNavVisibleForBusinessType(
     return !LOGISTICS_ONLY_PERMISSIONS.includes(permission)
   }
   if (t === 'logistics_provider') {
-    return !MERCHANT_PORTAL_PERMISSIONS.includes(permission)
+    return !MERCHANT_PORTAL_PERMISSIONS.includes(permission) && !VENDOR_PORTAL_PERMISSIONS.includes(permission)
   }
   return true
 }

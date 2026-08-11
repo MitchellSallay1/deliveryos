@@ -196,6 +196,30 @@ const MarketplaceProvidersPage = lazy(() =>
 const BillingPage = lazy(() =>
   import('@/pages/billing/index').then((m) => ({ default: m.BillingPage })),
 )
+const VendorOverviewPage = lazy(() =>
+  import('@/pages/vendor/index').then((m) => ({ default: m.VendorOverviewPage })),
+)
+const VendorCatalogPage = lazy(() =>
+  import('@/pages/vendor/catalog').then((m) => ({ default: m.VendorCatalogPage })),
+)
+const VendorProductsPage = lazy(() =>
+  import('@/pages/vendor/products').then((m) => ({ default: m.VendorProductsPage })),
+)
+const VendorOrdersPage = lazy(() =>
+  import('@/pages/vendor/orders').then((m) => ({ default: m.VendorOrdersPage })),
+)
+const VendorLocationsPage = lazy(() =>
+  import('@/pages/vendor/locations').then((m) => ({ default: m.VendorLocationsPage })),
+)
+const VendorFinancePage = lazy(() =>
+  import('@/pages/vendor/finance').then((m) => ({ default: m.VendorFinancePage })),
+)
+const VendorSettingsPage = lazy(() =>
+  import('@/pages/vendor/settings').then((m) => ({ default: m.VendorSettingsPage })),
+)
+const AdminVendorsPage = lazy(() =>
+  import('@/pages/admin/vendors').then((m) => ({ default: m.AdminVendorsPage })),
+)
 
 function PageFallback() {
   return (
@@ -257,6 +281,13 @@ export function AppRoutes() {
                   <Route path="/marketplace/jobs" element={<MarketplaceJobsPage />} />
                   <Route path="/marketplace/providers" element={<MarketplaceProvidersPage />} />
                   <Route path="/billing" element={<BillingPage />} />
+                  <Route path="/vendor" element={<VendorOverviewPage />} />
+                  <Route path="/vendor/catalog" element={<VendorCatalogPage />} />
+                  <Route path="/vendor/products" element={<VendorProductsPage />} />
+                  <Route path="/vendor/orders" element={<VendorOrdersPage />} />
+                  <Route path="/vendor/locations" element={<VendorLocationsPage />} />
+                  <Route path="/vendor/finance" element={<VendorFinancePage />} />
+                  <Route path="/vendor/settings" element={<VendorSettingsPage />} />
                   <Route path="/live-map" element={<LiveMapPage />} />
                   <Route path="/operations" element={<OperationsHubPage />} />
                   <Route path="/operations/branches" element={<BranchesPage />} />
@@ -287,6 +318,7 @@ export function AppRoutes() {
             <Route path="/admin/companies/:id" element={<AdminCompanyDetailPage />} />
             <Route path="/admin/merchants" element={<AdminMerchantsPage />} />
             <Route path="/admin/providers" element={<AdminProvidersPage />} />
+            <Route path="/admin/vendors" element={<AdminVendorsPage />} />
             <Route path="/admin/users" element={<AdminUsersPage />} />
             <Route path="/admin/riders" element={<AdminRidersPage />} />
             <Route path="/admin/deliveries" element={<AdminDeliveriesPage />} />

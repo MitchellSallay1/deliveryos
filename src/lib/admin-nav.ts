@@ -55,6 +55,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
       { to: '/admin/companies', label: 'Companies', icon: Building2 },
       { to: '/admin/merchants', label: 'Merchants', icon: Store },
       { to: '/admin/providers', label: 'Logistics Providers', icon: Truck },
+      { to: '/admin/vendors', label: 'Vendor Stores', icon: Store },
       { to: '/admin/users', label: 'Users', icon: Users },
       { to: '/admin/riders', label: 'Riders', icon: Users },
     ],

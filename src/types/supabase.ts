@@ -24,6 +24,19 @@ export type DeliveryStatus =
   | 'failed'
   | 'cancelled'
 export type PaymentStatus = 'pending' | 'collected' | 'deposited' | 'reconciled'
+export type CommerceVendorState = 'draft' | 'pending_review' | 'active' | 'suspended' | 'rejected'
+export type CommerceProductStatus = 'draft' | 'active' | 'paused'
+export type CommerceOrderPaymentStatus = 'pending_payment' | 'paid' | 'payment_failed' | 'refund_pending' | 'refunded'
+export type CommercePaymentMethod = 'cod' | 'mtn_momo' | 'orange_money'
+export type CommerceOrderFulfillmentStatus =
+  | 'awaiting_vendor'
+  | 'vendor_accepted'
+  | 'vendor_rejected'
+  | 'preparing'
+  | 'ready_for_pickup'
+  | 'handed_to_carrier'
+  | 'completed'
+  | 'cancelled'
 export type CompanySubscriptionStatus =
   | 'trialing'
   | 'active'
@@ -457,6 +470,162 @@ export interface Database {
         Update: Record<string, never>
         Relationships: []
       }
+      store_profiles: {
+        Row: {
+          company_id: string
+          slug: string
+          display_name: string
+          description: string | null
+          logo_url: string | null
+          banner_url: string | null
+          business_hours: Json
+          allow_cash_on_delivery: boolean
+          status: CommerceVendorState
+          status_reason: string | null
+          reviewed_by: string | null
+          reviewed_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: Record<string, never>
+        Update: Record<string, never>
+        Relationships: []
+      }
+      product_categories: {
+        Row: {
+          id: string
+          company_id: string
+          name: string
+          sort_order: number
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: Record<string, never>
+        Update: Record<string, never>
+        Relationships: []
+      }
+      products: {
+        Row: {
+          id: string
+          company_id: string
+          category_id: string | null
+          name: string
+          description: string | null
+          price_lrd_cents: number
+          currency: string
+          status: CommerceProductStatus
+          tracks_inventory: boolean
+          sort_order: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: Record<string, never>
+        Update: Record<string, never>
+        Relationships: []
+      }
+      product_images: {
+        Row: {
+          id: string
+          product_id: string
+          company_id: string
+          storage_path: string
+          sort_order: number
+          created_at: string
+        }
+        Insert: Record<string, never>
+        Update: Record<string, never>
+        Relationships: []
+      }
+      product_option_groups: {
+        Row: {
+          id: string
+          product_id: string
+          company_id: string
+          name: string
+          selection_type: string
+          is_required: boolean
+          sort_order: number
+          created_at: string
+        }
+        Insert: Record<string, never>
+        Update: Record<string, never>
+        Relationships: []
+      }
+      product_options: {
+        Row: {
+          id: string
+          option_group_id: string
+          company_id: string
+          name: string
+          price_delta_lrd_cents: number
+          is_active: boolean
+          sort_order: number
+          created_at: string
+        }
+        Insert: Record<string, never>
+        Update: Record<string, never>
+        Relationships: []
+      }
+      product_stock: {
+        Row: {
+          product_id: string
+          company_id: string
+          quantity_on_hand: number
+          quantity_reserved: number
+          updated_at: string
+        }
+        Insert: Record<string, never>
+        Update: Record<string, never>
+        Relationships: []
+      }
+      commerce_orders: {
+        Row: {
+          id: string
+          order_number: string
+          customer_id: string
+          vendor_company_id: string
+          cart_id: string | null
+          subtotal_lrd_cents: number
+          delivery_fee_lrd_cents: number
+          total_lrd_cents: number
+          currency: string
+          payment_method: CommercePaymentMethod
+          payment_status: CommerceOrderPaymentStatus
+          fulfillment_status: CommerceOrderFulfillmentStatus
+          customer_name: string
+          customer_phone: string
+          delivery_address: string | null
+          delivery_area_summary: string | null
+          delivery_latitude: number | null
+          delivery_longitude: number | null
+          delivery_instructions: string | null
+          delivery_id: string | null
+          cancelled_at: string | null
+          cancellation_reason: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: Record<string, never>
+        Update: Record<string, never>
+        Relationships: []
+      }
+      commerce_order_items: {
+        Row: {
+          id: string
+          order_id: string
+          product_id: string | null
+          product_name: string
+          unit_price_lrd_cents: number
+          quantity: number
+          selected_options: Json
+          line_total_lrd_cents: number
+          created_at: string
+        }
+        Insert: Record<string, never>
+        Update: Record<string, never>
+        Relationships: []
+      }
     }
     Views: Record<string, never>
     Functions: {
@@ -875,6 +1044,53 @@ export interface Database {
       upsert_webhook_endpoint: { Args: { p_payload: Json }; Returns: Json }
       list_company_branches: { Args: { p_company_id: string }; Returns: Json }
       upsert_company_branch: { Args: { p_payload: Json }; Returns: Json }
+      upsert_store_profile: { Args: { p_payload: Json }; Returns: Json }
+      submit_store_profile_for_review: { Args: { p_company_id: string }; Returns: Json }
+      upsert_product_category: { Args: { p_payload: Json }; Returns: Json }
+      upsert_product: { Args: { p_payload: Json }; Returns: Json }
+      upsert_product_option_group: { Args: { p_payload: Json }; Returns: Json }
+      upsert_product_option: { Args: { p_payload: Json }; Returns: Json }
+      upsert_product_image: { Args: { p_payload: Json }; Returns: Json }
+      delete_product_image: { Args: { p_image_id: string }; Returns: undefined }
+      adjust_product_stock: {
+        Args: { p_product_id: string; p_delta: number; p_reason?: string }
+        Returns: Json
+      }
+      get_or_create_cart: { Args: { p_vendor_company_id: string }; Returns: Json }
+      add_cart_item: {
+        Args: { p_cart_id: string; p_product_id: string; p_quantity: number; p_selected_options?: Json }
+        Returns: Json
+      }
+      submit_commerce_order: {
+        Args: {
+          p_cart_id: string
+          p_customer_name: string
+          p_delivery_address?: string | null
+          p_delivery_area_summary?: string | null
+          p_delivery_latitude?: number | null
+          p_delivery_longitude?: number | null
+          p_delivery_instructions?: string | null
+          p_payment_method?: string
+        }
+        Returns: Json
+      }
+      vendor_accept_commerce_order: { Args: { p_order_id: string }; Returns: Json }
+      vendor_reject_commerce_order: { Args: { p_order_id: string; p_reason?: string }; Returns: Json }
+      vendor_mark_order_preparing: { Args: { p_order_id: string }; Returns: Json }
+      vendor_mark_order_ready: { Args: { p_order_id: string }; Returns: Json }
+      list_vendor_commerce_orders_page: {
+        Args: { p_vendor_company_id: string; p_fulfillment_statuses?: string[] | null; p_limit?: number; p_offset?: number }
+        Returns: Json
+      }
+      get_vendor_commerce_overview: { Args: { p_vendor_company_id: string }; Returns: Json }
+      admin_set_vendor_state: {
+        Args: { p_company_id: string; p_state: string; p_reason?: string | null }
+        Returns: Json
+      }
+      admin_list_vendor_stores: {
+        Args: { p_status?: string | null; p_search?: string | null; p_limit?: number; p_offset?: number }
+        Returns: Json
+      }
       list_vehicles_page: {
         Args: {
           p_company_id: string

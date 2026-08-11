@@ -16,6 +16,11 @@ import {
   Network,
   CreditCard,
   Menu,
+  FolderTree,
+  Package,
+  ClipboardList,
+  Wallet,
+  SlidersHorizontal,
 } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
@@ -68,6 +73,18 @@ const NAV_GROUPS: NavGroup[] = [
       { to: '/merchant/requests', label: 'Delivery requests', icon: Store, permission: 'page:merchant-requests' },
       { to: '/marketplace/jobs', label: 'Marketplace jobs', icon: Network, permission: 'page:marketplace-jobs' },
       { to: '/marketplace/providers', label: 'Providers', icon: Users, permission: 'page:marketplace-providers' },
+    ],
+  },
+  {
+    label: 'Commerce',
+    items: [
+      { to: '/vendor', label: 'Vendor overview', icon: Store, permission: 'page:vendor' },
+      { to: '/vendor/orders', label: 'Orders', icon: ClipboardList, permission: 'page:vendor' },
+      { to: '/vendor/catalog', label: 'Catalog', icon: FolderTree, permission: 'page:vendor' },
+      { to: '/vendor/products', label: 'Products', icon: Package, permission: 'page:vendor' },
+      { to: '/vendor/locations', label: 'Vendor locations', icon: MapPin, permission: 'page:vendor' },
+      { to: '/vendor/finance', label: 'Vendor finance', icon: Wallet, permission: 'page:vendor' },
+      { to: '/vendor/settings', label: 'Store setup', icon: SlidersHorizontal, permission: 'page:vendor' },
     ],
   },
   {

@@ -129,6 +129,11 @@ BEGIN
   PERFORM public.admin_set_vendor_state(v_vendor_b, 'active', 'looks good');
   PERFORM set_config('request.jwt.claim.sub', '', true);
 
+  -- Phase B.5: COD defaults off — this file exercises order submission, not
+  -- payment-method gating itself (covered by commerce_phase_b5.test.sql),
+  -- so enable it on both fixture vendors.
+  UPDATE public.store_profiles SET allow_cash_on_delivery = true WHERE company_id IN (v_vendor_a, v_vendor_b);
+
   SELECT status INTO v_store.status FROM public.store_profiles WHERE company_id = v_vendor_a;
   IF v_store.status <> 'active' THEN
     RAISE EXCEPTION 'expected super admin approval to activate the store, got %', v_store.status;
