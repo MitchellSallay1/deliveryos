@@ -24,13 +24,26 @@
          (with devOptions.enabled, this also works in `vite dev`) — a
          second hardcoded tag here was redundant and, in dev mode, still
          pointed at a path the dev server didn't serve. -->
+    <!-- These are fallback defaults only. Every public marketing route gets
+         real, page-specific values baked into its own static HTML file at
+         build time — see scripts/prerender.mjs and docs/SEO.md — so this
+         block is what a crawler sees only for routes outside that set
+         (i.e. the authenticated app, which is deliberately noindexed; see
+         vercel.json's X-Robots-Tag on app.delivoslib.com) and what
+         `vite dev` serves before any prerendering has run. -->
+    <meta name="robots" content="index, follow" />
     <meta name="description" content="DeliveryOS — the operating system for modern delivery businesses. Dispatch, riders, tracking, COD, and operations in one platform." />
+    <meta property="og:site_name" content="DeliveryOS" />
     <meta property="og:type" content="website" />
     <meta property="og:title" content="DeliveryOS — Deliver smarter" />
     <meta property="og:description" content="Manage dispatch, riders, live tracking, customers, and logistics from one platform. Powered by MTN." />
-    <meta name="twitter:card" content="summary" />
+    <meta property="og:image" content="https://delivoslib.com/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="DeliveryOS — Deliver smarter" />
     <meta name="twitter:description" content="Manage dispatch, riders, live tracking, customers, and logistics from one platform." />
+    <meta name="twitter:image" content="https://delivoslib.com/og-image.png" />
     <title>DeliveryOS — Deliver smarter</title>
   </head>
   <body>

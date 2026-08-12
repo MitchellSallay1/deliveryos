@@ -1,6 +1,6 @@
 # Public website
 
-DeliveryOS marketing site lives in the same Vite SPA as the authenticated product.
+DeliveryOS marketing site lives in the same Vite SPA as the authenticated product — one build, served on both `https://delivoslib.com` (canonical, indexable) and `https://app.delivoslib.com` (operational app, deliberately noindexed). See [SEO.md](./SEO.md) for the domain/indexing strategy and how marketing routes are prerendered to real static HTML for crawlers.
 
 ## Routes
 
@@ -29,7 +29,7 @@ Auth CTAs: `/register` (trial), `/login` (phone OTP).
 - **Layout:** `src/layouts/MarketingLayout.tsx`
 - **Components:** `src/components/marketing/*`
 - **Branding:** `BrandingProvider` + `BrandLogo` / Powered by MTN
-- **SEO:** `src/lib/page-meta.ts`, `usePageMeta`, defaults in `index.html`
+- **SEO:** every route above is registered in `src/lib/seo/routes.ts` and prerendered to real static HTML at build time — see [SEO.md](./SEO.md) for the full system (metadata registry, JSON-LD, sitemap, robots.txt, domain/noindex strategy). Client-side tag updates still go through `src/lib/page-meta.ts` / `usePageMeta`; `index.html` provides fallback defaults only.
 - **Pricing data:** `listPublicPlans()` with anon RLS policy (`20260308170000_public_plans_read.sql`) and `PLAN_CATALOG_FALLBACK`
 - **Contact:** `VITE_CONTACT_FORM_URL` optional POST endpoint; otherwise provider-ready message
 

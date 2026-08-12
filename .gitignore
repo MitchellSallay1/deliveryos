@@ -4,6 +4,7 @@
 sms-secrets.env
 node_modules/
 dist/
+dist-ssr/
 dev-dist/
 backend/bin/
 frontend/dist/

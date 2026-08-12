@@ -1,0 +1,12 @@
+# app.delivoslib.com — the operational application, not the marketing site.
+# Same SPA build as delivoslib.com (see docs/SEO.md "One build, two
+# domains"), so every route technically resolves here too — dashboards,
+# admin, and the marketing pages themselves would otherwise be indexed as
+# duplicate/competing content. Disallowed entirely; the same is enforced,
+# independent of this file, by an X-Robots-Tag: noindex, nofollow response
+# header set in vercel.json for this host — robots.txt alone is a hint a
+# crawler can ignore, not an access control mechanism, so this is
+# belt-and-suspenders, not the only protection. Real protection for
+# private data is Supabase Auth/RLS, unaffected by either of these.
+User-agent: *
+Disallow: /

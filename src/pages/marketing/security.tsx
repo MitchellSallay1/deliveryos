@@ -1,8 +1,9 @@
 import { usePageMeta } from '@/hooks/use-page-meta'
+import { getPageHeadData } from '@/lib/seo/page-head'
 import { MarketingPageShell } from '@/layouts/MarketingLayout'
 
 export function SecurityPage() {
-  usePageMeta({ title: 'Security', path: '/security' })
+  usePageMeta(getPageHeadData('security'))
   return (
     <MarketingPageShell className="py-16 max-w-3xl">
       <h1 className="text-4xl font-semibold tracking-tight text-zinc-900">Security</h1>

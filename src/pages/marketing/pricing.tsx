@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { usePageMeta } from '@/hooks/use-page-meta'
+import { getPageHeadData } from '@/lib/seo/page-head'
 import { MarketingCtaBand, MarketingPageShell } from '@/layouts/MarketingLayout'
 import { listPublicPlans } from '@/services/billing-service'
 import {
@@ -41,7 +42,7 @@ function cellValue(plan: PublicPlanRow, key: (typeof COMPARISON_ROWS)[number]['k
 }
 
 export function PricingPage() {
-  usePageMeta({ title: 'Pricing', path: '/pricing' })
+  usePageMeta(getPageHeadData('pricing'))
   const { data, isLoading } = useQuery({
     queryKey: ['public-plans'],
     queryFn: listPublicPlans,

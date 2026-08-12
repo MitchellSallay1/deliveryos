@@ -1,4 +1,5 @@
 import { usePageMeta } from '@/hooks/use-page-meta'
+import { getPageHeadData } from '@/lib/seo/page-head'
 import { MarketingCtaBand, MarketingPageShell } from '@/layouts/MarketingLayout'
 
 const SOLUTIONS = [
@@ -10,7 +11,7 @@ const SOLUTIONS = [
 ]
 
 export function SolutionsPage() {
-  usePageMeta({ title: 'Solutions', path: '/solutions' })
+  usePageMeta(getPageHeadData('solutions'))
   return (
     <>
       <MarketingPageShell className="py-16">

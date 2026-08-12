@@ -1,4 +1,5 @@
 import { usePageMeta } from '@/hooks/use-page-meta'
+import { getPageHeadData } from '@/lib/seo/page-head'
 import { MarketingPageShell } from '@/layouts/MarketingLayout'
 import { Badge } from '@/components/ui/Badge'
 
@@ -22,7 +23,7 @@ function StatusPill({ status }: { status: StatusRow['status'] }) {
 }
 
 export function StatusPage() {
-  usePageMeta({ title: 'Status', path: '/status' })
+  usePageMeta(getPageHeadData('status'))
   return (
     <MarketingPageShell className="py-16 max-w-2xl">
       <h1 className="text-4xl font-semibold tracking-tight text-zinc-900">Service status</h1>

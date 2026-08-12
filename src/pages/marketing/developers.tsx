@@ -1,9 +1,10 @@
 import { Link } from 'react-router-dom'
 import { usePageMeta } from '@/hooks/use-page-meta'
+import { getPageHeadData } from '@/lib/seo/page-head'
 import { MarketingPageShell } from '@/layouts/MarketingLayout'
 
 export function DevelopersPage() {
-  usePageMeta({ title: 'Developers', path: '/developers' })
+  usePageMeta(getPageHeadData('developers'))
   return (
     <MarketingPageShell className="py-16 max-w-3xl">
       <h1 className="text-4xl font-semibold tracking-tight text-zinc-900">Developers</h1>
@@ -25,7 +26,7 @@ export function DevelopersPage() {
 }
 
 export function PartnersPage() {
-  usePageMeta({ title: 'Partners', path: '/partners' })
+  usePageMeta(getPageHeadData('partners'))
   return (
     <MarketingPageShell className="py-16 max-w-3xl">
       <h1 className="text-4xl font-semibold tracking-tight text-zinc-900">Partners</h1>

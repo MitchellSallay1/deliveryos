@@ -1,0 +1,44 @@
+# delivoslib.com — public marketing site.
+# Served at /robots.txt via a host-conditional rewrite in vercel.json
+# (there is no literal public/robots.txt — Vercel serves static files
+# before rewrites, which would make a real file at that path win over the
+# rewrite on every host, including app.delivoslib.com).
+#
+# robots.txt is a crawling hint, not an access control mechanism — nothing
+# listed as Disallow here is secret; real protection is Supabase Auth/RLS.
+# This file only keeps crawl budget off pages that are login-gated,
+# transactional, or personal (a customer's own order, a one-time invite
+# link) and therefore not useful search results.
+User-agent: *
+Allow: /
+Disallow: /login
+Disallow: /register
+Disallow: /auth/
+Disallow: /setup
+Disallow: /link-rider
+Disallow: /track/
+Disallow: /invite/
+Disallow: /rider/invite/
+Disallow: /orders
+Disallow: /store/*/checkout
+Disallow: /dashboard
+Disallow: /deliveries
+Disallow: /merchant/
+Disallow: /marketplace/
+Disallow: /billing
+Disallow: /vendor
+Disallow: /vendor/
+Disallow: /live-map
+Disallow: /operations
+Disallow: /operations/
+Disallow: /riders
+Disallow: /customers
+Disallow: /reports
+Disallow: /notifications
+Disallow: /settings
+Disallow: /team
+Disallow: /my-jobs
+Disallow: /admin
+Disallow: /admin/
+
+Sitemap: https://delivoslib.com/sitemap.xml

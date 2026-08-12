@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { usePageMeta } from '@/hooks/use-page-meta'
+import { getPageHeadData } from '@/lib/seo/page-head'
 import { MarketingPageShell } from '@/layouts/MarketingLayout'
 import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
@@ -7,7 +8,7 @@ import { Button } from '@/components/ui/Button'
 import { submitContactForm } from '@/services/contact-form-service'
 
 export function ContactPage() {
-  usePageMeta({ title: 'Contact', path: '/contact' })
+  usePageMeta(getPageHeadData('contact'))
   const [intent, setIntent] = useState<'sales' | 'demo' | 'support'>('sales')
   const [status, setStatus] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)

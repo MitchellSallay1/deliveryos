@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Static, hand-maintained — the marketing route set is small and fixed
+  today, so a build-time generator would be pure overhead. Lists only
+  canonical, public, indexable pages: no login/registration flows, no
+  authenticated app routes, no per-customer or per-delivery pages.
+  /status is deliberately omitted — it's marked noindex (see
+  src/lib/seo/page-head.ts), so it shouldn't appear in a sitemap either.
+
+  Future: public vendor storefronts (/store/:slug) are intentionally
+  crawlable (see public/robots-marketing.txt) but are NOT listed here —
+  there is no per-vendor sitemap generation yet. When storefronts are
+  ready to be actively promoted in search, add a build- or request-time
+  job that lists active, publicly-visible vendor slugs (companies with
+  commerce_enabled and a published storefront) and either appends them
+  here or serves a separate /sitemap-stores.xml referenced from a
+  sitemap index — do not hand-maintain that list.
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://delivoslib.com/</loc>
+    <lastmod>2026-08-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://delivoslib.com/features</loc>
+    <lastmod>2026-08-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://delivoslib.com/solutions</loc>
+    <lastmod>2026-08-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://delivoslib.com/pricing</loc>
+    <lastmod>2026-08-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://delivoslib.com/about</loc>
+    <lastmod>2026-08-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://delivoslib.com/contact</loc>
+    <lastmod>2026-08-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://delivoslib.com/faq</loc>
+    <lastmod>2026-08-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://delivoslib.com/security</loc>
+    <lastmod>2026-08-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://delivoslib.com/developers</loc>
+    <lastmod>2026-08-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://delivoslib.com/partners</loc>
+    <lastmod>2026-08-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://delivoslib.com/terms</loc>
+    <lastmod>2026-08-12</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  <url>
+    <loc>https://delivoslib.com/privacy</loc>
+    <lastmod>2026-08-12</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.2</priority>
+  </url>
+</urlset>

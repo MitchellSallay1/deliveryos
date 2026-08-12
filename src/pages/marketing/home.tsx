@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { usePageMeta } from '@/hooks/use-page-meta'
+import { getPageHeadData } from '@/lib/seo/page-head'
 import { Reveal } from '@/components/marketing/Reveal'
 import { HomePricingPreview } from '@/components/marketing/HomePricingPreview'
 import { PremiumHero } from '@/components/marketing/hero/PremiumHero'
@@ -24,12 +25,7 @@ import { InstallButton } from '@/components/pwa/InstallButton'
 const OPS_MODULES = ['Fleet', 'Warehouses', 'Inventory', 'Branches', 'Maintenance', 'Expenses', 'Profitability']
 
 export function HomePage() {
-  usePageMeta({
-    title: 'Deliver smarter',
-    description:
-      'The operating system for modern delivery businesses. Dispatch, riders, tracking, COD, and operations in one platform.',
-    path: '/',
-  })
+  usePageMeta(getPageHeadData('home'))
 
   return (
     <div className="overflow-x-hidden bg-[#F8F6F1]">

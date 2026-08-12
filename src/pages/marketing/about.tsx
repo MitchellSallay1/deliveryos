@@ -1,8 +1,9 @@
 import { usePageMeta } from '@/hooks/use-page-meta'
+import { getPageHeadData } from '@/lib/seo/page-head'
 import { MarketingCtaBand, MarketingPageShell } from '@/layouts/MarketingLayout'
 
 export function AboutPage() {
-  usePageMeta({ title: 'About', path: '/about' })
+  usePageMeta(getPageHeadData('about'))
   return (
     <>
       <MarketingPageShell className="py-16 prose-zinc max-w-3xl">

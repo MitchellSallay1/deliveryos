@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { usePageMeta } from '@/hooks/use-page-meta'
+import { getPageHeadData } from '@/lib/seo/page-head'
 import { useMarketingHashScroll } from '@/hooks/use-marketing-hash-scroll'
 import { MarketingCtaBand } from '@/layouts/MarketingLayout'
 import { Reveal } from '@/components/marketing/Reveal'
@@ -43,11 +44,7 @@ function TourSection({
 }
 
 export function FeaturesPage() {
-  usePageMeta({
-    title: 'Product tour',
-    description: 'See DeliveryOS in action — dispatch, riders, tracking, COD, fleet, marketplace, and API.',
-    path: '/features',
-  })
+  usePageMeta(getPageHeadData('features'))
   useMarketingHashScroll()
 
   return (

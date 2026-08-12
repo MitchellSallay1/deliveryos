@@ -1,5 +1,6 @@
 import { MarketingPageShell } from '@/layouts/MarketingLayout'
 import { usePageMeta } from '@/hooks/use-page-meta'
+import { getPageHeadData } from '@/lib/seo/page-head'
 
 function LegalNotice() {
   return (
@@ -11,7 +12,7 @@ function LegalNotice() {
 }
 
 export function TermsPage() {
-  usePageMeta({ title: 'Terms of Service', path: '/terms' })
+  usePageMeta(getPageHeadData('terms'))
   return (
     <MarketingPageShell className="py-16 max-w-3xl">
       <h1 className="text-4xl font-semibold tracking-tight text-zinc-900">Terms of Service</h1>
@@ -75,7 +76,7 @@ export function TermsPage() {
 }
 
 export function PrivacyPage() {
-  usePageMeta({ title: 'Privacy Policy', path: '/privacy' })
+  usePageMeta(getPageHeadData('privacy'))
   return (
     <MarketingPageShell className="py-16 max-w-3xl">
       <h1 className="text-4xl font-semibold tracking-tight text-zinc-900">Privacy Policy</h1>

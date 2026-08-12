@@ -124,7 +124,16 @@ Set function secrets in Supabase Dashboard → Edge Functions → Secrets.
 5. Set environment variables per environment (Production / Preview).
 6. Protect production branch; use preview URLs for staging.
 
-`vercel.json` at the repo root provides the SPA fallback rewrite (every non-static path serves `index.html` — required because the app uses `BrowserRouter`, not hash routing) and baseline security headers (HSTS, `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options`/`frame-ancestors`, `Permissions-Policy`, a CSP scoped to `self` + Supabase + Google Fonts + OpenStreetMap tiles + the Leaflet marker-icon CDN). **Verify the CSP in a Preview deployment first** (browser console will show any violation) before it's live on the production domain — it was written from a full audit of every external origin the app actually loads, not guessed, but a live check is still the safe final step.
+`vercel.json` at the repo root provides the SPA fallback rewrite (every non-static path serves `index.html` — required because the app uses `BrowserRouter`, not hash routing) and baseline security headers (HSTS, `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options`/`frame-ancestors`, `Permissions-Policy`, a CSP scoped to `self` + Supabase + Google Fonts + OpenStreetMap tiles + the Leaflet marker-icon CDN). It also carries the SEO/domain rules from this phase: a 301 from `www.delivoslib.com` to the apex, a host-conditional `/robots.txt` (different content on `app.delivoslib.com` vs `delivoslib.com`), and an `X-Robots-Tag: noindex, nofollow` header scoped to `app.delivoslib.com`. **Verify all of this in a Preview deployment first** (browser console will show any CSP violation; `curl -I` with a `Host` override will show the right robots/X-Robots-Tag per domain) before it's live on the production domains — see [SEO.md](./SEO.md) for the full reasoning.
+
+`npm run build` now also runs a build-time SSR pass (`vite build --ssr src/entry-server.tsx --outDir dist-ssr`) and `scripts/prerender.mjs`, which writes real static HTML for every public marketing route into `dist/`. This is required for the build to be complete — `dist-ssr/` is a build-time-only intermediate (gitignored, not part of `outputDirectory`) and is safe to ignore in Vercel's output.
+
+### Search Console / Bing Webmaster Tools
+
+Not configured yet — do this once `delivoslib.com` DNS/SSL is live in Vercel:
+
+1. Add `delivoslib.com` as a property in Google Search Console. Verify via DNS TXT, or via the HTML meta-tag method — if you use the meta tag, add the exact `<meta name="google-site-verification" content="...">` value Google gives you to `index.html`'s `<head>`; it is not one of the tags `scripts/prerender.mjs` rewrites, so it passes through unchanged to every prerendered page. Then submit `https://delivoslib.com/sitemap.xml`.
+2. Add the same property to Bing Webmaster Tools (it can import a verified Search Console property directly) and submit the same sitemap URL.
 
 ---
 
