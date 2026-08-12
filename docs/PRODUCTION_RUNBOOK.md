@@ -31,7 +31,20 @@ Keep staging on the **same major Postgres version** as production (currently 15 
 
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_ANON_KEY`
-- `VITE_APP_URL` — public frontend origin for invite/deep links (not required for phone login)
+- `VITE_APP_URL` — public frontend origin for invite/deep links (not required for phone login). Set to `https://app.<domain>` in Production; leave unset in Preview (falls back to the preview deployment's own origin via `window.location.origin`, see `src/lib/app-url.ts`).
+
+`src/lib/supabase/client.ts` now throws at startup (not just a console warning) if `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` are missing — a misconfigured deploy fails loudly instead of shipping a client that silently can't reach the database.
+
+### Domain-dependent database configuration (not part of any migration)
+
+`notify_customer_tracking` (delivery-tracking SMS link) reads the tracking-page base URL from the Postgres GUC `app.public_url` — this is intentionally environment-specific and cannot live in a migration. **Required one-time step against the production database** once the domain is live (Supabase SQL Editor):
+
+```sql
+ALTER DATABASE postgres SET app.public_url = 'https://app.<domain>';
+SELECT pg_reload_conf();
+```
+
+Until this is set, `notify_customer_tracking` sends the status update without a tracking link (fixed in `20260309220000_production_domain_readiness.sql` — it previously fell back to a dead `http://localhost:5173` link, which real customers may have already received before this was set).
 
 ### Local `.env` (gitignored)
 
@@ -46,7 +59,7 @@ VITE_APP_URL=http://localhost:5173
 1. **Authentication → Providers → Phone** — enable.
 2. SMS delivered via **Send SMS Hook** → `auth-sms-hook` → WinAggregator (covers MTN Liberia and Orange Liberia; not a native MTN carrier integration — see [MTN_INTEGRATION.md](./MTN_INTEGRATION.md)).
 3. Enable Auth **rate limits** and **CAPTCHA** for production.
-4. Keep **Site URL** / **Redirect URLs** for `/auth/callback` if using magic links or OAuth; normal login is phone OTP in-app.
+4. **Authentication → URL Configuration**: set **Site URL** to `https://app.<domain>` and add `https://app.<domain>/auth/callback` (and, if previewing, the Vercel preview origin) to **Redirect URLs**. The current login flow is phone OTP exchanged directly in-app (`signInWithOtp`/`verifyOtp`, no `redirectTo` passed anywhere in the codebase) so no request today actually depends on these — but Site URL still governs anything Supabase Auth does hosted-side (e.g. Auth API CORS scoping, any future email-based flow), so it should never be left pointing at `localhost` on a production project.
 
 **Manual smoke test — step 1 production-verified (real SMS received, code verified, session issued); steps 2–5 still to be exercised end-to-end with real SMS:**
 
@@ -108,6 +121,8 @@ Set function secrets in Supabase Dashboard → Edge Functions → Secrets.
 4. Install command: `npm ci`
 5. Set environment variables per environment (Production / Preview).
 6. Protect production branch; use preview URLs for staging.
+
+`vercel.json` at the repo root provides the SPA fallback rewrite (every non-static path serves `index.html` — required because the app uses `BrowserRouter`, not hash routing) and baseline security headers (HSTS, `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options`/`frame-ancestors`, `Permissions-Policy`, a CSP scoped to `self` + Supabase + Google Fonts + OpenStreetMap tiles + the Leaflet marker-icon CDN). **Verify the CSP in a Preview deployment first** (browser console will show any violation) before it's live on the production domain — it was written from a full audit of every external origin the app actually loads, not guessed, but a live check is still the safe final step.
 
 ---
 
