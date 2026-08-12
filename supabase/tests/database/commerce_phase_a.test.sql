@@ -57,6 +57,11 @@ BEGIN
     'merchant'::public.company_business_type
   );
   PERFORM set_config('request.jwt.claim.sub', '', true);
+  -- commerce_enabled is plan-gated (Phase F) — every vendor fixture needs a
+  -- plan whose catalog row has it set, same as carriers already get
+  -- upgraded to 'business' for provider_network.
+  UPDATE public.company_subscriptions SET plan_id = (SELECT id FROM public.subscriptions WHERE slug = 'business')
+  WHERE company_subscriptions.company_id = v_company;
   RETURN QUERY SELECT v_company, v_owner;
 END;
 $$;

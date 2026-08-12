@@ -23,6 +23,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   multi_branch_not_enabled: 'Multiple locations require a plan upgrade.',
   not_a_vendor_company: 'This workspace is not set up as a Commerce vendor.',
   not_a_merchant_company: 'This workspace is not set up as a Commerce vendor.',
+  commerce_not_enabled: 'Commerce is not included in this store’s current plan.',
   vendor_not_available: 'This store is not currently accepting orders.',
   payment_not_confirmed: 'This order cannot be accepted until payment is confirmed.',
   cod_not_allowed: 'This store does not accept Cash on Delivery. Choose a different payment method.',

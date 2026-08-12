@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
 import { useAuth } from '@/hooks/use-auth'
+import { OnboardingProgressStrip } from '@/components/dashboard/OnboardingProgressStrip'
 import {
   cancelDeliveryRequest,
   createDeliveryRequest,
@@ -67,6 +68,8 @@ export function MerchantRequestsPage() {
 
   return (
     <div className="space-y-6">
+      {companyId && <OnboardingProgressStrip companyId={companyId} />}
+
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-xl font-semibold">Delivery requests</h2>

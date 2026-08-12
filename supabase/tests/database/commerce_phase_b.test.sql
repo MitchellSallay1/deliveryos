@@ -47,6 +47,13 @@ BEGIN
     lower(replace(p_label, ' ', '')) || '@test.local', NULL, p_business_type
   );
   PERFORM set_config('request.jwt.claim.sub', '', true);
+  -- commerce_enabled is plan-gated (Phase F) — vendor fixtures need a plan
+  -- whose catalog row has it set; not needed for the non-vendor fixture
+  -- this helper also creates (business_type-rejection test).
+  IF p_business_type IN ('merchant', 'hybrid') THEN
+    UPDATE public.company_subscriptions SET plan_id = (SELECT id FROM public.subscriptions WHERE slug = 'business')
+    WHERE company_subscriptions.company_id = v_company;
+  END IF;
   RETURN QUERY SELECT v_company, v_owner;
 END;
 $$;

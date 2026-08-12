@@ -57,6 +57,13 @@ BEGIN
     lower(replace(p_label, ' ', '')) || '@test.local', NULL, p_business_type
   );
   PERFORM set_config('request.jwt.claim.sub', '', true);
+  -- commerce_enabled is plan-gated (Phase F), same as provider_network
+  -- already is for carriers — upgrade every fixture company up front so
+  -- neither gate needs a separate per-callsite upgrade. Harmless/idempotent
+  -- alongside the carrier-specific upgrade below (business already covers
+  -- both flags).
+  UPDATE public.company_subscriptions SET plan_id = (SELECT id FROM public.subscriptions WHERE slug = 'business')
+  WHERE company_subscriptions.company_id = v_company;
   RETURN QUERY SELECT v_company, v_owner;
 END;
 $$;

@@ -23,7 +23,10 @@ export function resolvePostAuthPath(user: User, context: AuthContext): string {
       context.memberships[0]
     const role = context.activeRole ?? active?.role ?? null
     if (active?.company.business_type === 'merchant' && role === 'company_owner') {
-      return '/merchant/requests'
+      // /vendor is the primary Commerce landing destination for a merchant
+      // owner — /merchant/requests (the legacy B2B delivery-request
+      // marketplace) remains available from the sidebar, unchanged.
+      return '/vendor'
     }
     return defaultHomeForRole(role)
   }

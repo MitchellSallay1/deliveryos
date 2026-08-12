@@ -91,7 +91,9 @@ export function RegisterMerchantPage() {
     <Card>
       <CardHeader>
         <CardTitle>Business details</CardTitle>
-        <CardDescription>Request deliveries and work with logistics providers</CardDescription>
+        <CardDescription>
+          Sell through your own storefront and request deliveries from logistics providers on the network.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <form className="grid gap-3" onSubmit={onSubmit}>

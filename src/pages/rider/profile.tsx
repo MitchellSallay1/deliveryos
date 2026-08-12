@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
 import { useAuth } from '@/hooks/use-auth'
 import { updateMyProfile } from '@/services/settings-service'
+import { parseSupabaseError } from '@/lib/supabase-errors'
 
 export function RiderProfilePage() {
   const { context, user, refreshContext } = useAuth()
@@ -27,7 +28,7 @@ export function RiderProfilePage() {
       refreshContext()
       setMessage('Profile saved.')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Save failed')
+      setError(parseSupabaseError(err))
     } finally {
       setSaving(false)
     }

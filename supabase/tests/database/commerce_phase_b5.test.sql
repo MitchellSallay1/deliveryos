@@ -50,6 +50,10 @@ BEGIN
     lower(replace(p_label, ' ', '')) || '@test.local', NULL, 'merchant'
   );
   PERFORM set_config('request.jwt.claim.sub', '', true);
+  -- commerce_enabled is plan-gated (Phase F) — every vendor fixture needs a
+  -- plan whose catalog row has it set.
+  UPDATE public.company_subscriptions SET plan_id = (SELECT id FROM public.subscriptions WHERE slug = 'business')
+  WHERE company_subscriptions.company_id = v_company;
   RETURN QUERY SELECT v_company, v_owner;
 END;
 $$;

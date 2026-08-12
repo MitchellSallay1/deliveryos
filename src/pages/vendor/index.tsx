@@ -4,9 +4,12 @@ import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { VendorGuard } from '@/components/vendor/VendorGuard'
+import { PlanUpgradeNotice } from '@/components/dashboard/PlanUpgradeNotice'
+import { OnboardingProgressStrip } from '@/components/dashboard/OnboardingProgressStrip'
 import { useVendorContext } from '@/hooks/use-vendor-context'
 import { useStoreProfile, useVendorOverview } from '@/hooks/use-vendor-commerce'
 import { vendorStateLabel, vendorStateVariant } from '@/lib/vendor-commerce-ui'
+import { parseSupabaseError } from '@/lib/supabase-errors'
 
 function Metric({ label, value, accent }: { label: string; value: number; accent?: 'warn' | 'bad' }) {
   const accentClass = accent === 'warn' ? 'text-amber-700' : accent === 'bad' ? 'text-red-700' : ''
@@ -28,6 +31,8 @@ function VendorOverviewContent() {
   return (
     <div className="space-y-6 animate-fade-in">
       <PageHeader title="Vendor overview" description={`${companyName} — Commerce storefront`} />
+
+      {companyId && <OnboardingProgressStrip companyId={companyId} />}
 
       {store && (
         <Card>
@@ -52,13 +57,17 @@ function VendorOverviewContent() {
         </Card>
       )}
 
-      {error && (
-        <p className="text-sm text-red-600">
-          {error instanceof Error ? error.message : 'Could not load vendor overview'}
-        </p>
-      )}
+      {error && <p className="text-sm text-red-600">{parseSupabaseError(error)}</p>}
 
       {isLoading && <p className="text-sm text-[var(--color-muted)]">Loading…</p>}
+
+      {overview && !overview.commerce_enabled && (
+        <Card>
+          <CardContent className="pt-6">
+            <PlanUpgradeNotice message="Commerce is not included in this store's current plan — orders and catalog changes are read-only until you upgrade." />
+          </CardContent>
+        </Card>
+      )}
 
       {overview && (
         <>

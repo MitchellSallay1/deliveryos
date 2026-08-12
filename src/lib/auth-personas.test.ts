@@ -92,7 +92,7 @@ describe('resolvePostAuthPath', () => {
     expect(shouldBlockCompanySetup(mockUser({ persona: 'company_owner' }))).toBe(false)
   })
 
-  it('routes merchant owner to merchant portal', () => {
+  it('routes merchant owner to the vendor Commerce portal', () => {
     const user = mockUser({ persona: 'merchant' })
     const ctx: AuthContext = {
       ...emptyContext,
@@ -116,7 +116,7 @@ describe('resolvePostAuthPath', () => {
         },
       ],
     }
-    expect(resolvePostAuthPath(user, ctx)).toBe('/merchant/requests')
+    expect(resolvePostAuthPath(user, ctx)).toBe('/vendor')
   })
 })
 

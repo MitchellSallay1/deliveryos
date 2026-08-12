@@ -70,6 +70,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
       { to: '/admin/map', label: 'Network Map', icon: Map },
       { to: '/admin/network', label: 'Network Performance', icon: Gauge },
       { to: '/admin/marketplace', label: 'Marketplace', icon: Network },
+      { to: '/admin/commerce-orders', label: 'Commerce Operations', icon: Store },
     ],
   },
   {

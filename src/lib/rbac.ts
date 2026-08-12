@@ -201,7 +201,7 @@ export function defaultHomeForRole(role: AppRole | null): string {
 }
 
 export function merchantHomePath(): string {
-  return '/merchant/requests'
+  return '/vendor'
 }
 
 export function friendlyRoleLabel(role: AppRole | null): string {

@@ -11,6 +11,7 @@ import { resolvePostAuthPath } from '@/lib/post-auth-navigation'
 import { fetchAuthContext } from '@/hooks/use-auth-context'
 import { useAuth } from '@/hooks/use-auth'
 import { isRiderLinked } from '@/lib/post-auth-navigation'
+import { parseSupabaseError } from '@/lib/supabase-errors'
 
 export function RegisterRiderPage() {
   const navigate = useNavigate()
@@ -55,7 +56,7 @@ export function RegisterRiderPage() {
       const ctx = await fetchAuthContext(user!.id)
       navigate(resolvePostAuthPath(user!, ctx), { replace: true })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Registration failed')
+      setError(parseSupabaseError(err))
     } finally {
       setSubmitting(false)
     }

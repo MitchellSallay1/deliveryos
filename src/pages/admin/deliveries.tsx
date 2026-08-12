@@ -8,6 +8,7 @@ import {
   CommandEmptyState,
   CommandInput,
   CommandPagination,
+  CommandSelect,
   CommandTable,
   CommandTableHead,
   CommandTd,
@@ -23,16 +24,19 @@ import { useAdminDeliveriesPage, useAdminDeliveryDetail } from '@/hooks/use-admi
 
 const PAGE = 25
 
+const STATUS_OPTIONS = ['pending', 'assigned', 'accepted', 'picked_up', 'in_transit', 'delivered', 'failed', 'cancelled']
+
 export function AdminDeliveriesPage() {
   const [params, setParams] = useSearchParams()
   const code = params.get('code') ?? ''
+  const status = params.get('status') ?? ''
   const [tracking, setTracking] = useState(code)
   const [page, setPage] = useState(1)
   const [selectedId, setSelectedId] = useState<string | null>(null)
 
   const query = useMemo(
-    () => ({ trackingCode: tracking || undefined, limit: PAGE, offset: (page - 1) * PAGE }),
-    [tracking, page],
+    () => ({ trackingCode: tracking || undefined, status: status || undefined, limit: PAGE, offset: (page - 1) * PAGE }),
+    [tracking, status, page],
   )
   const { data, isLoading } = useAdminDeliveriesPage(query, true)
   const rows = data?.rows ?? []
@@ -55,11 +59,31 @@ export function AdminDeliveriesPage() {
             variant="primary"
             onClick={() => {
               setPage(1)
-              if (tracking) setParams({ code: tracking })
+              const next: Record<string, string> = {}
+              if (tracking) next.code = tracking
+              if (status) next.status = status
+              setParams(next)
             }}
           >
             Search
           </CommandButton>
+          <CommandSelect
+            value={status}
+            onChange={(e) => {
+              setPage(1)
+              const next: Record<string, string> = {}
+              if (tracking) next.code = tracking
+              if (e.target.value) next.status = e.target.value
+              setParams(next)
+            }}
+          >
+            <option value="">All statuses</option>
+            {STATUS_OPTIONS.map((s) => (
+              <option key={s} value={s}>
+                {s.replace(/_/g, ' ')}
+              </option>
+            ))}
+          </CommandSelect>
         </CommandCardBody>
         {isLoading ? (
           <p className="p-4 text-sm text-zinc-500">Loading…</p>

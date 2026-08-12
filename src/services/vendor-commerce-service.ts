@@ -23,15 +23,15 @@ export type StoreProfile = {
 }
 
 export async function fetchStoreProfile(companyId: string): Promise<StoreProfile | null> {
-  const { data, error } = await supabase
-    .from('store_profiles')
-    .select(
-      'company_id, slug, display_name, description, logo_url, banner_url, business_hours, allow_cash_on_delivery, status, status_reason, reviewed_at',
-    )
-    .eq('company_id', companyId)
-    .maybeSingle()
+  // Routed through an RPC rather than a raw table read: status_reason and
+  // reviewed_at are admin-internal review fields that Postgres column
+  // grants can't restrict to "your own company" (grants aren't row-aware),
+  // so a plain `.from('store_profiles').select(...)` would let any
+  // authenticated session read them for someone else's active store.
+  const { data, error } = await supabase.rpc('get_vendor_store_profile', { p_company_id: companyId })
   if (error) throw error
-  return data
+  if (!data || (data as { company_id: string | null }).company_id === null) return null
+  return data as unknown as StoreProfile
 }
 
 export async function upsertStoreProfile(payload: {
@@ -147,6 +147,7 @@ export async function fetchVendorProducts(companyId: string): Promise<VendorProd
     )
     .eq('company_id', companyId)
     .order('sort_order')
+    .limit(500)
 
   if (error) throw error
   return (data ?? []) as unknown as VendorProduct[]
@@ -216,6 +217,7 @@ export async function adjustProductStock(productId: string, delta: number, reaso
 
 export type VendorOverview = {
   store: StoreProfile | null
+  commerce_enabled: boolean
   orders: {
     new: number
     preparing: number

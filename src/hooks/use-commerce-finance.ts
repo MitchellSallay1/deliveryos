@@ -66,10 +66,14 @@ export function useAdminCommerceFinanceOverview(filters?: {
   })
 }
 
-export function useAdminCommerceFinancialEvents(page: number, pageSize = 25) {
+export function useAdminCommerceFinancialEvents(
+  page: number,
+  pageSize = 25,
+  filters?: { from?: string; to?: string; vendorCompanyId?: string; eventType?: string },
+) {
   return useQuery({
-    queryKey: ['admin-commerce-financial-events', page],
-    queryFn: () => adminListCommerceFinancialEvents(pageSize, (page - 1) * pageSize),
+    queryKey: ['admin-commerce-financial-events', page, filters?.from, filters?.to, filters?.vendorCompanyId, filters?.eventType],
+    queryFn: () => adminListCommerceFinancialEvents(pageSize, (page - 1) * pageSize, filters),
   })
 }
 

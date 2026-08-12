@@ -1220,7 +1220,35 @@ export interface Database {
         }
         Returns: Json
       }
-      admin_list_commerce_financial_events: { Args: { p_limit?: number; p_offset?: number }; Returns: Json }
+      admin_list_commerce_financial_events: {
+        Args: {
+          p_limit?: number
+          p_offset?: number
+          p_from?: string | null
+          p_to?: string | null
+          p_vendor_company_id?: string | null
+          p_event_type?: string | null
+        }
+        Returns: Json
+      }
+      admin_get_commerce_orders_summary: { Args: { p_stuck_after_hours?: number }; Returns: Json }
+      admin_list_commerce_orders_page: {
+        Args: {
+          p_fulfillment_statuses?: string[] | null
+          p_stuck_only?: boolean
+          p_stuck_after_hours?: number
+          p_search?: string | null
+          p_limit?: number
+          p_offset?: number
+        }
+        Returns: Json
+      }
+      admin_list_commerce_providers_page: {
+        Args: { p_search?: string | null; p_limit?: number; p_offset?: number }
+        Returns: Json
+      }
+      admin_commerce_reconciliation_gaps: { Args: { p_limit?: number }; Returns: Json }
+      get_vendor_store_profile: { Args: { p_company_id: string }; Returns: Json }
       admin_create_commerce_settlement: {
         Args: { p_payee_type: string; p_payee_company_id: string; p_notes?: string | null }
         Returns: Json

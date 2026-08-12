@@ -142,6 +142,8 @@ export type AdminCommerceFinanceOverview = {
   platform_revenue_lrd_cents: number
   vendor_unsettled_lrd_cents: number
   carrier_unsettled_lrd_cents: number
+  settlements_pending: number
+  settlements_processing: number
   settlements_completed: number
   settlements_failed: number
   reversals_count: number
@@ -175,8 +177,19 @@ export type CommerceFinancialEventRow = {
   created_at: string
 }
 
-export async function adminListCommerceFinancialEvents(limit = 25, offset = 0): Promise<{ total: number; rows: CommerceFinancialEventRow[] }> {
-  const { data, error } = await supabase.rpc('admin_list_commerce_financial_events', { p_limit: limit, p_offset: offset })
+export async function adminListCommerceFinancialEvents(
+  limit = 25,
+  offset = 0,
+  filters?: { from?: string; to?: string; vendorCompanyId?: string; eventType?: string },
+): Promise<{ total: number; rows: CommerceFinancialEventRow[] }> {
+  const { data, error } = await supabase.rpc('admin_list_commerce_financial_events', {
+    p_limit: limit,
+    p_offset: offset,
+    p_from: filters?.from ?? null,
+    p_to: filters?.to ?? null,
+    p_vendor_company_id: filters?.vendorCompanyId ?? null,
+    p_event_type: filters?.eventType ?? null,
+  })
   if (error) throw error
   const payload = (data ?? { total: 0, rows: [] }) as unknown as { total: number; rows: CommerceFinancialEventRow[] }
   return { rows: payload.rows ?? [], total: payload.total ?? 0 }

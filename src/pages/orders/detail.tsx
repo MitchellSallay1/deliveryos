@@ -172,8 +172,8 @@ export function OrderDetailPage() {
               </div>
             ))}
             <p className="text-xs text-[var(--color-muted)]">
-              Carriers shown are available and serve this area — not sorted by distance. The carrier still needs to
-              confirm before your order is handed over for delivery.
+              Carriers shown are available and have set a delivery price — not filtered or sorted by distance. The
+              carrier still needs to confirm before your order is handed over for delivery.
             </p>
           </CardContent>
         </Card>

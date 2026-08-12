@@ -137,6 +137,7 @@ function SettlementDrawer({ settlement, onClose }: { settlement: CommerceSettlem
           {settlement.external_reference && (
             <p className="text-sm text-zinc-400">External reference: {settlement.external_reference}</p>
           )}
+          {settlement.notes && <p className="text-sm text-zinc-400">Notes: {settlement.notes}</p>}
           {settlement.settled_at && (
             <p className="text-sm text-zinc-400">Settled: {new Date(settlement.settled_at).toLocaleString()}</p>
           )}
@@ -227,22 +228,82 @@ function SettlementDrawer({ settlement, onClose }: { settlement: CommerceSettlem
 }
 
 export function AdminCommerceFinancePage() {
-  const { data: overview, isLoading: overviewLoading } = useAdminCommerceFinanceOverview()
+  const [from, setFrom] = useState('')
+  const [to, setTo] = useState('')
+  const [vendorCompanyId, setVendorCompanyId] = useState('')
+  const [carrierCompanyId, setCarrierCompanyId] = useState('')
+  const overviewFilters = {
+    from: from ? new Date(from).toISOString() : undefined,
+    to: to ? new Date(to).toISOString() : undefined,
+    vendorCompanyId: vendorCompanyId.trim() || undefined,
+    carrierCompanyId: carrierCompanyId.trim() || undefined,
+  }
+  const { data: overview, isLoading: overviewLoading } = useAdminCommerceFinanceOverview(overviewFilters)
   const [settlementStatus, setSettlementStatus] = useState<CommerceSettlementStatus | ''>('')
+  const [settlementPayeeCompanyId, setSettlementPayeeCompanyId] = useState('')
   const [settlementPage, setSettlementPage] = useState(1)
   const { data: settlements, isLoading: settlementsLoading } = useCommerceSettlements({
     status: settlementStatus || undefined,
+    payeeCompanyId: settlementPayeeCompanyId.trim() || undefined,
     page: settlementPage,
     pageSize: PAGE,
   })
   const [selected, setSelected] = useState<CommerceSettlement | null>(null)
 
   const [eventsPage, setEventsPage] = useState(1)
-  const { data: events, isLoading: eventsLoading } = useAdminCommerceFinancialEvents(eventsPage, PAGE)
+  const { data: events, isLoading: eventsLoading } = useAdminCommerceFinancialEvents(eventsPage, PAGE, {
+    from: overviewFilters.from,
+    to: overviewFilters.to,
+    vendorCompanyId: overviewFilters.vendorCompanyId,
+  })
 
   return (
     <div className="space-y-4">
       <SectionHeader eyebrow="Commerce" title="Commerce finance" className="mb-0" />
+
+      <CommandCard>
+        <CommandCardBody className="flex flex-wrap items-end gap-3">
+          <label className="flex flex-col gap-1 text-xs text-zinc-500">
+            From
+            <CommandInput type="date" className="w-[160px]" value={from} onChange={(e) => setFrom(e.target.value)} />
+          </label>
+          <label className="flex flex-col gap-1 text-xs text-zinc-500">
+            To
+            <CommandInput type="date" className="w-[160px]" value={to} onChange={(e) => setTo(e.target.value)} />
+          </label>
+          <label className="flex flex-col gap-1 text-xs text-zinc-500">
+            Vendor company ID
+            <CommandInput
+              className="w-[220px]"
+              placeholder="All vendors"
+              value={vendorCompanyId}
+              onChange={(e) => setVendorCompanyId(e.target.value)}
+            />
+          </label>
+          <label className="flex flex-col gap-1 text-xs text-zinc-500">
+            Carrier company ID
+            <CommandInput
+              className="w-[220px]"
+              placeholder="All carriers"
+              value={carrierCompanyId}
+              onChange={(e) => setCarrierCompanyId(e.target.value)}
+            />
+          </label>
+          {(from || to || vendorCompanyId || carrierCompanyId) && (
+            <CommandButton
+              size="sm"
+              onClick={() => {
+                setFrom('')
+                setTo('')
+                setVendorCompanyId('')
+                setCarrierCompanyId('')
+              }}
+            >
+              Clear filters
+            </CommandButton>
+          )}
+        </CommandCardBody>
+      </CommandCard>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <CommandKpi label="Commerce GMV" value={formatLrdFromCents(overview?.commerce_gmv_lrd_cents ?? 0)} loading={overviewLoading} />
@@ -256,7 +317,9 @@ export function AdminCommerceFinancePage() {
           color="amber"
         />
       </div>
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-5">
+        <CommandKpi label="Settlements pending" value={String(overview?.settlements_pending ?? 0)} loading={overviewLoading} />
+        <CommandKpi label="Settlements processing" value={String(overview?.settlements_processing ?? 0)} loading={overviewLoading} />
         <CommandKpi label="Settlements completed" value={String(overview?.settlements_completed ?? 0)} loading={overviewLoading} />
         <CommandKpi label="Settlements failed" value={String(overview?.settlements_failed ?? 0)} loading={overviewLoading} color={overview && overview.settlements_failed > 0 ? 'red' : 'gray'} />
         <CommandKpi label="Reversals recorded" value={String(overview?.reversals_count ?? 0)} loading={overviewLoading} />
@@ -266,7 +329,7 @@ export function AdminCommerceFinancePage() {
 
       <CommandCard>
         <CommandCardHeader title="Settlements" description="Manual/admin-confirmed only — no money is ever sent electronically from here." />
-        <CommandCardBody className="border-b border-white/[0.06] pb-4">
+        <CommandCardBody className="flex flex-wrap gap-2 border-b border-white/[0.06] pb-4">
           <CommandSelect
             className="max-w-[220px]"
             value={settlementStatus}
@@ -282,6 +345,15 @@ export function AdminCommerceFinancePage() {
             <option value="failed">Failed</option>
             <option value="reversed">Reversed</option>
           </CommandSelect>
+          <CommandInput
+            className="max-w-[220px]"
+            placeholder="Filter by payee company ID"
+            value={settlementPayeeCompanyId}
+            onChange={(e) => {
+              setSettlementPayeeCompanyId(e.target.value)
+              setSettlementPage(1)
+            }}
+          />
         </CommandCardBody>
         {settlementsLoading ? (
           <p className="p-4 text-sm text-zinc-500">Loading…</p>

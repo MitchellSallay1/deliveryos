@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { productImagePublicUrl, uploadProductImage, validateProductImageFile } from '@/services/storage-service'
 import type { ProductImage } from '@/services/vendor-commerce-service'
+import { parseSupabaseError } from '@/lib/supabase-errors'
 
 export function ProductImageUploader({
   companyId,
@@ -35,7 +36,7 @@ export function ProductImageUploader({
       const nextSortOrder = images.reduce((max, img) => Math.max(max, img.sort_order), -1) + 1
       await onUpload({ storage_path: path, sort_order: nextSortOrder })
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Upload failed')
+      setError(parseSupabaseError(e))
     } finally {
       if (inputRef.current) inputRef.current.value = ''
     }
