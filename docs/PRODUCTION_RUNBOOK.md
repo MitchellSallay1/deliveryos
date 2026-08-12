@@ -35,16 +35,18 @@ Keep staging on the **same major Postgres version** as production (currently 15 
 
 `src/lib/supabase/client.ts` now throws at startup (not just a console warning) if `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` are missing — a misconfigured deploy fails loudly instead of shipping a client that silently can't reach the database.
 
-### Domain-dependent database configuration (not part of any migration)
+### Domain-dependent configuration: `public_app_url` platform setting
 
-`notify_customer_tracking` (delivery-tracking SMS link) reads the tracking-page base URL from the Postgres GUC `app.public_url` — this is intentionally environment-specific and cannot live in a migration. **Required one-time step against the production database** once the domain is live (Supabase SQL Editor):
+`notify_customer_tracking` (delivery-tracking SMS link) reads the tracking-page base URL from the `platform_settings` table (`key = 'public_app_url'`) via the internal `get_platform_setting` RPC — **not** a Postgres GUC. An earlier fix (`20260309220000_production_domain_readiness.sql`) used `current_setting('app.public_url', true)`, set via `ALTER DATABASE ... SET app.public_url`; that command fails on hosted Supabase with `ERROR 42501: permission denied to set parameter` (the hosted migration role isn't a database superuser and cannot set custom GUCs at the database level). `20260309230000_platform_settings_public_app_url.sql` replaces the mechanism entirely.
+
+**Required one-time step once the domain is live** — no superuser permission needed: sign in as Super Admin and set it on **`/admin/configuration`** (the "Public app URL" field). This is the intended path — `admin_set_platform_setting` is gated by `is_super_admin()`, which reads `auth.uid()` from an authenticated app session, so it can't be called meaningfully from the SQL Editor (no JWT context there). If the admin UI is ever unavailable, a direct table write via SQL Editor works instead, since RLS doesn't apply to the Editor's privileged connection:
 
 ```sql
-ALTER DATABASE postgres SET app.public_url = 'https://app.<domain>';
-SELECT pg_reload_conf();
+insert into platform_settings (key, value) values ('public_app_url', 'https://app.<domain>')
+on conflict (key) do update set value = excluded.value, updated_at = now();
 ```
 
-Until this is set, `notify_customer_tracking` sends the status update without a tracking link (fixed in `20260309220000_production_domain_readiness.sql` — it previously fell back to a dead `http://localhost:5173` link, which real customers may have already received before this was set).
+Until this is set, `notify_customer_tracking` sends the status update without a tracking link — never a broken or `localhost` one.
 
 ### Local `.env` (gitignored)
 

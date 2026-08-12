@@ -1249,6 +1249,8 @@ export interface Database {
       }
       admin_commerce_reconciliation_gaps: { Args: { p_limit?: number }; Returns: Json }
       get_vendor_store_profile: { Args: { p_company_id: string }; Returns: Json }
+      admin_list_platform_settings: { Args: Record<string, never>; Returns: Json }
+      admin_set_platform_setting: { Args: { p_key: string; p_value: string | null }; Returns: Json }
       admin_create_commerce_settlement: {
         Args: { p_payee_type: string; p_payee_company_id: string; p_notes?: string | null }
         Returns: Json

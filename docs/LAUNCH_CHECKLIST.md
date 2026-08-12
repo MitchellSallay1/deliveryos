@@ -6,7 +6,7 @@
 - [ ] **CI DB tests passed** (`.github/workflows/ci.yml` green)
 - [ ] RLS suite reviewed (`tests/db/rls-security.test.ts`)
 - [ ] Backups / PITR enabled (Supabase dashboard)
-- [ ] `app.public_url` set on the production database (`ALTER DATABASE postgres SET app.public_url = 'https://app.<domain>'; SELECT pg_reload_conf();`) — required for delivery-tracking SMS links; see [PRODUCTION_RUNBOOK.md](./PRODUCTION_RUNBOOK.md#domain-dependent-database-configuration-not-part-of-any-migration)
+- [ ] `public_app_url` platform setting configured via Super Admin → `/admin/configuration` — required for delivery-tracking SMS links; see [PRODUCTION_RUNBOOK.md](./PRODUCTION_RUNBOOK.md#domain-dependent-configuration-public_app_url-platform-setting)
 
 ## AUTH
 
