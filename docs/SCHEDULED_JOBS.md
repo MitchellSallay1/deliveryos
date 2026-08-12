@@ -4,9 +4,10 @@ All schedules use **UTC**. Prefer Supabase Dashboard → Edge Functions → Cron
 
 | Job | Function | Suggested schedule | Purpose |
 |-----|----------|-------------------|---------|
-| Orchestrator | `jobs-scheduler` | `*/5 * * * *` | Maintenance RPC + dispatch SMS/webhooks/email |
+| Orchestrator | `jobs-scheduler` | `*/5 * * * *` | Maintenance RPC + dispatch SMS/WhatsApp/webhooks/email |
 | SMS (operational) | `sms-dispatch` | via orchestrator | Outbound SMS queue (rider/delivery notifications, delivery OTP) |
 | SMS (auth OTP) | `auth-sms-hook` | Supabase Auth Send SMS Hook (event-driven, not cron) | Login/registration OTP delivery — **not** part of the orchestrator |
+| WhatsApp | `whatsapp-dispatch` | via orchestrator | Outbound WhatsApp queue (Gupshup) — see [WHATSAPP.md](./WHATSAPP.md) |
 | Webhooks | `webhooks-dispatch` | via orchestrator | Webhook retries |
 | Email | `email-dispatch` | via orchestrator | Transactional email queue |
 
@@ -29,6 +30,8 @@ Invoked by `jobs-scheduler` with service role:
 - `SEND_SMS_HOOK_SECRET` — `auth-sms-hook` only; the `v1,whsec_<base64>` secret Supabase generates when the Send SMS Hook is enabled in the Auth dashboard. Never logged, never committed. Required — `auth-sms-hook` fails closed (503) without it.
 - `EMAIL_PROVIDER` — `stub` or `http`
 - `EMAIL_HTTP_ENDPOINT`, `EMAIL_HTTP_TOKEN`
+- `GUPSHUP_API_KEY`, `GUPSHUP_APP_NAME`, `GUPSHUP_SOURCE_NUMBER` — `whatsapp-dispatch` only. Missing any of these makes the function respond 503 rather than send — see [WHATSAPP.md](./WHATSAPP.md).
+- `GUPSHUP_WEBHOOK_SECRET` — `whatsapp-webhook` only; the token appended to the callback URL as `?token=...`.
 
 ### SMS provider notes (WinAggregator) — production-tested
 
@@ -47,4 +50,6 @@ npx supabase functions deploy sms-dispatch
 npx supabase functions deploy webhooks-dispatch
 npx supabase functions deploy email-dispatch
 npx supabase functions deploy auth-sms-hook --no-verify-jwt
+npx supabase functions deploy whatsapp-dispatch
+npx supabase functions deploy whatsapp-webhook --no-verify-jwt
 ```

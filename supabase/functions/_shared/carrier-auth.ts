@@ -17,7 +17,7 @@
  * this module intentionally stays generic until that spec exists.
  */
 
-function timingSafeEqual(a: string, b: string): boolean {
+export function timingSafeEqual(a: string, b: string): boolean {
   const enc = new TextEncoder()
   const aBytes = enc.encode(a)
   const bBytes = enc.encode(b)
@@ -54,6 +54,37 @@ export function verifySharedSecret(
   }
 
   const provided = req.headers.get(headerName)
+  if (!provided || !timingSafeEqual(provided, expected)) {
+    return { ok: false, status: 401, code: "unauthorized", message: "unauthorized" }
+  }
+
+  return { ok: true }
+}
+
+/**
+ * Same fail-closed, timing-safe contract as verifySharedSecret, but reads
+ * the token from a URL query parameter instead of a header. Exists for
+ * providers whose webhook setup UI is "paste a callback URL" with no way to
+ * configure a custom header (Gupshup's dashboard is exactly this — see
+ * whatsapp-webhook and docs/WHATSAPP.md) — the shared secret has to travel
+ * in the URL itself for those, since there is nowhere else to put it.
+ */
+export function verifySharedSecretQueryParam(
+  req: Request,
+  envVarName: string,
+  paramName: string,
+): CarrierAuthResult {
+  const expected = Deno.env.get(envVarName)
+  if (!expected) {
+    return {
+      ok: false,
+      status: 503,
+      code: "not_configured",
+      message: `${envVarName} is not configured. This endpoint is disabled until an operator sets it.`,
+    }
+  }
+
+  const provided = new URL(req.url).searchParams.get(paramName)
   if (!provided || !timingSafeEqual(provided, expected)) {
     return { ok: false, status: 401, code: "unauthorized", message: "unauthorized" }
   }

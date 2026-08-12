@@ -47,8 +47,29 @@ Deno.serve(async (req) => {
   const webhooks = await webhookRes.json().catch(() => ({}));
   const email = await emailRes.json().catch(() => ({}));
 
+  // whatsapp-dispatch is called and awaited SEPARATELY, deliberately outside
+  // the Promise.all above and wrapped in its own try/catch with a bounded
+  // timeout: a network failure, DNS error, or hang on this one dispatcher
+  // must never throw past this point and take the whole scheduler
+  // invocation down with it — sms/webhooks/email have already completed by
+  // here regardless of what happens next. It's still safe to call
+  // unconditionally before Gupshup secrets are configured — it responds 503
+  // {"error":"not_configured"} rather than throwing, same fail-closed shape
+  // as the other dispatchers.
+  let whatsapp: Record<string, unknown>;
+  try {
+    const whatsappRes = await fetch(`${base}/functions/v1/whatsapp-dispatch`, {
+      method: "POST",
+      headers: dispatchHeaders,
+      signal: AbortSignal.timeout(45_000),
+    });
+    whatsapp = await whatsappRes.json().catch(() => ({}));
+  } catch (e) {
+    whatsapp = { error: e instanceof Error ? e.message : "whatsapp-dispatch unreachable" };
+  }
+
   return new Response(
-    JSON.stringify({ maintenance: data, sms, webhooks, email, ran_at: new Date().toISOString() }),
+    JSON.stringify({ maintenance: data, sms, webhooks, email, whatsapp, ran_at: new Date().toISOString() }),
     { headers: { ...cors, "Content-Type": "application/json" } },
   );
 });

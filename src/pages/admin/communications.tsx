@@ -1,4 +1,4 @@
-import { Mail, MessageSquare, Radio, Send } from 'lucide-react'
+import { Mail, MessageCircle, MessageSquare, Radio, Send } from 'lucide-react'
 import {
   CommandCard,
   CommandCardBody,
@@ -16,6 +16,7 @@ export function AdminCommunicationsPage() {
   const { data, isLoading } = useCommunicationsSummary(days, true)
   const sms = (data?.sms ?? {}) as Record<string, number>
   const email = (data?.email ?? {}) as Record<string, number>
+  const whatsapp = (data?.whatsapp ?? {}) as Record<string, number>
   const notifByChannel = (data?.notifications_by_channel ?? {}) as Record<string, number>
 
   return (
@@ -37,7 +38,7 @@ export function AdminCommunicationsPage() {
 
       {isLoading && <p className="text-sm text-zinc-500">Loading…</p>}
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid gap-4 lg:grid-cols-4">
         <CommandCard>
           <CommandCardHeader
             title={
@@ -52,6 +53,27 @@ export function AdminCommunicationsPage() {
               <MetricRow label="Sent" value={sms.sent ?? 0} />
               <MetricRow label="Failed" value={sms.failed ?? 0} hint={Number(sms.failed) > 0 ? 'Needs attention' : undefined} />
               <MetricRow label="Inbound commands" value={sms.inbound_commands ?? 0} hint="USSD/SMS keyword replies" />
+            </MetricList>
+          </CommandCardBody>
+        </CommandCard>
+
+        <CommandCard>
+          <CommandCardHeader
+            title={
+              <span className="inline-flex items-center gap-1.5">
+                <MessageCircle className="h-3.5 w-3.5 text-zinc-500" /> WhatsApp
+              </span>
+            }
+            description="Gupshup"
+          />
+          <CommandCardBody>
+            <MetricList>
+              <MetricRow label="Queued" value={whatsapp.queued ?? 0} />
+              <MetricRow label="Sent" value={whatsapp.sent ?? 0} />
+              <MetricRow label="Delivered" value={whatsapp.delivered ?? 0} />
+              <MetricRow label="Read" value={whatsapp.read ?? 0} />
+              <MetricRow label="Failed" value={whatsapp.failed ?? 0} hint={Number(whatsapp.failed) > 0 ? 'Needs attention' : undefined} />
+              <MetricRow label="Inbound" value={whatsapp.inbound ?? 0} />
             </MetricList>
           </CommandCardBody>
         </CommandCard>
