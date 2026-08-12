@@ -8,6 +8,7 @@ import { AdminSidebar } from '@/components/admin/AdminSidebar'
 import { AdminGlobalSearch } from '@/components/admin/AdminGlobalSearch'
 import { BrandLogo } from '@/components/brand/BrandLogo'
 import { cn } from '@/lib/utils'
+import { InstallButton } from '@/components/pwa/InstallButton'
 
 export function AdminLayout() {
   const { pathname } = useLocation()
@@ -73,6 +74,7 @@ export function AdminLayout() {
           </button>
           <h1 className="shrink-0 text-base font-semibold tracking-tight text-white">{title}</h1>
           <AdminGlobalSearch />
+          <InstallButton label="Install app" variant="ghost" size="sm" showIcon={false} className="ml-auto text-zinc-400 hover:text-white" />
         </header>
         <main className="flex-1 overflow-x-hidden p-4 sm:p-6">
           <Outlet />

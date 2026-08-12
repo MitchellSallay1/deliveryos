@@ -5,6 +5,10 @@ import { BrowserRouter } from 'react-router-dom'
 import { AppRoutes } from '@/App'
 import { AuthProvider } from '@/hooks/use-auth'
 import { BrandingProvider } from '@/branding/BrandingProvider'
+import { PwaInstallProvider } from '@/hooks/use-pwa-install'
+import { NetworkStatusBanner } from '@/components/pwa/NetworkStatusBanner'
+import { UpdateToast } from '@/components/pwa/UpdateToast'
+import { InstallPromotionBanner } from '@/components/pwa/InstallPromotionBanner'
 import '@/index.css'
 
 const queryClient = new QueryClient({
@@ -21,9 +25,14 @@ createRoot(document.getElementById('root')!).render(
     <BrandingProvider>
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
-          <AuthProvider>
-            <AppRoutes />
-          </AuthProvider>
+          <PwaInstallProvider>
+            <AuthProvider>
+              <NetworkStatusBanner />
+              <AppRoutes />
+              <UpdateToast />
+              <InstallPromotionBanner />
+            </AuthProvider>
+          </PwaInstallProvider>
         </BrowserRouter>
       </QueryClientProvider>
     </BrandingProvider>

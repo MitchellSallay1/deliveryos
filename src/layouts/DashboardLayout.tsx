@@ -36,6 +36,7 @@ import type { CompanyBusinessType } from '@/services/marketplace-service'
 import { TrialStatusBanner } from '@/components/TrialStatusBanner'
 import { BrandLogo } from '@/components/brand/BrandLogo'
 import { Badge } from '@/components/ui/Badge'
+import { InstallButton } from '@/components/pwa/InstallButton'
 
 type NavItem = {
   to: string
@@ -237,6 +238,7 @@ export function DashboardLayout() {
               <p className="hidden text-xs text-[var(--color-muted)] sm:block">{companyName}</p>
             </div>
           </div>
+          <InstallButton label="Install app" variant="ghost" size="sm" showIcon={false} className="text-[var(--color-muted)]" />
         </header>
         <main className="flex-1 p-4 lg:p-8">
           <TrialStatusBanner />

@@ -3,6 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- iOS Safari does not read the web app manifest for Add to Home
+         Screen — it needs its own tag. 180x180 is Apple's recommended
+         apple-touch-icon size; rasterized from maskable-icon.svg (full-
+         bleed background, no pre-rounded corners) since iOS applies its
+         own corner rounding to whatever square image is provided. -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-180.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="DeliveryOS" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

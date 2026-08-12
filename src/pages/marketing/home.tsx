@@ -19,6 +19,7 @@ import {
   MTN_INTEGRATION_STATUS,
 } from '@/lib/marketing-cta'
 import { Button } from '@/components/ui/Button'
+import { InstallButton } from '@/components/pwa/InstallButton'
 
 const OPS_MODULES = ['Fleet', 'Warehouses', 'Inventory', 'Branches', 'Maintenance', 'Expenses', 'Profitability']
 
@@ -187,6 +188,18 @@ export function HomePage() {
           <div className="mt-12">
             <HomePricingPreview />
           </div>
+        </div>
+      </section>
+
+      <section className="border-b border-zinc-200/80 bg-[#F8F6F1] py-12">
+        <div className="mx-auto flex max-w-3xl flex-col items-center gap-3 px-4 text-center sm:px-6 lg:px-8">
+          <Reveal>
+            <p className="text-lg font-semibold text-zinc-900">Install DeliveryOS</p>
+            <p className="mt-1 text-sm text-zinc-600">Add DeliveryOS to your phone for faster access.</p>
+            <div className="mt-4">
+              <InstallButton variant="outline" />
+            </div>
+          </Reveal>
         </div>
       </section>
 
