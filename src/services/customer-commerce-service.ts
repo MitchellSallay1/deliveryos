@@ -70,7 +70,7 @@ export type SubmitOrderInput = {
   deliveryLatitude?: number
   deliveryLongitude?: number
   deliveryInstructions?: string
-  paymentMethod: 'cod'
+  paymentMethod: 'cod' | 'mtn_momo'
 }
 
 export async function submitCommerceOrder(input: SubmitOrderInput) {
@@ -212,4 +212,68 @@ export async function selectCommerceDeliveryOffer(orderId: string, offerId: stri
   })
   if (error) throw error
   return data
+}
+
+// ---------------------------------------------------------------------------
+// MTN MoMo payment (Commerce Phase E2)
+// ---------------------------------------------------------------------------
+
+export type PaymentAttemptState = 'created' | 'requesting' | 'pending' | 'successful' | 'failed' | 'unknown'
+
+export type PaymentAttempt = {
+  id: string
+  commerce_order_id: string
+  external_id: string
+  currency: string
+  gross_amount_cents: number
+  payer_msisdn: string
+  state: PaymentAttemptState
+  failure_category: string | null
+  created_at: string
+  requested_at: string | null
+  resolved_at: string | null
+}
+
+const PAYMENT_ATTEMPT_COLUMNS =
+  'id, commerce_order_id, external_id, currency, gross_amount_cents, payer_msisdn, state, failure_category, created_at, requested_at, resolved_at'
+
+/**
+ * Calls mtn-collect. Deliberately does NOT wait for the payment outcome —
+ * the Edge Function itself responds as soon as the attempt is created and
+ * marked 'requesting' (sub-second); the actual ~60s provider round trip
+ * happens server-side afterward. Callers poll/subscribe to the returned
+ * attemptId via usePaymentAttempt instead of awaiting a slow response here.
+ */
+export async function initiateMtnMomoPayment(
+  orderId: string,
+  msisdn: string,
+): Promise<{ attemptId: string; externalId: string; state: PaymentAttemptState }> {
+  const { data, error } = await supabase.functions.invoke('mtn-collect', {
+    body: { orderId, msisdn },
+  })
+  if (error) throw error
+  return data as { attemptId: string; externalId: string; state: PaymentAttemptState }
+}
+
+export async function fetchPaymentAttempt(attemptId: string): Promise<PaymentAttempt | null> {
+  const { data, error } = await supabase
+    .from('payment_attempts')
+    .select(PAYMENT_ATTEMPT_COLUMNS)
+    .eq('id', attemptId)
+    .maybeSingle()
+  if (error) throw error
+  return data as PaymentAttempt | null
+}
+
+/** Most recent attempt for an order — used to resume watching a payment after a page refresh/navigation. */
+export async function fetchLatestPaymentAttemptForOrder(orderId: string): Promise<PaymentAttempt | null> {
+  const { data, error } = await supabase
+    .from('payment_attempts')
+    .select(PAYMENT_ATTEMPT_COLUMNS)
+    .eq('commerce_order_id', orderId)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  if (error) throw error
+  return data as PaymentAttempt | null
 }

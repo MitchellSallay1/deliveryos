@@ -135,6 +135,9 @@ const AdminMarketplacePage = lazy(() =>
 const AdminCommerceFinancePage = lazy(() =>
   import('@/pages/admin/commerce-finance').then((m) => ({ default: m.AdminCommerceFinancePage })),
 )
+const AdminCommercePaymentsPage = lazy(() =>
+  import('@/pages/admin/commerce-payments').then((m) => ({ default: m.AdminCommercePaymentsPage })),
+)
 const AdminCommerceOrdersPage = lazy(() =>
   import('@/pages/admin/commerce-orders').then((m) => ({ default: m.AdminCommerceOrdersPage })),
 )
@@ -367,6 +370,7 @@ export function AppRoutes() {
             <Route path="/admin/marketplace" element={<AdminMarketplacePage />} />
             <Route path="/admin/commerce-orders" element={<AdminCommerceOrdersPage />} />
             <Route path="/admin/commerce-finance" element={<AdminCommerceFinancePage />} />
+            <Route path="/admin/commerce-payments" element={<AdminCommercePaymentsPage />} />
             <Route path="/admin/commerce-fee-rules" element={<AdminCommerceFeeRulesPage />} />
             <Route path="/admin/webhooks" element={<AdminWebhooksPage />} />
             <Route path="/admin/support" element={<AdminSupportPage />} />

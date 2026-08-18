@@ -4,9 +4,12 @@ import { Link, useParams } from 'react-router-dom'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { Input } from '@/components/ui/Input'
 import { PhoneOtpFlow } from '@/components/PhoneOtpFlow'
+import { MtnPaymentStatusPanel } from '@/components/commerce/MtnPaymentStatusPanel'
 import { useAuth } from '@/hooks/use-auth'
 import { useCommerceOrderDeliveryStatus, useCustomerOrder, useStoreBrief } from '@/hooks/use-customer-orders'
+import { useLatestPaymentAttemptForOrder } from '@/hooks/use-payment-attempts'
 import { parseSupabaseError } from '@/lib/supabase-errors'
 import {
   orderFulfillmentStatusLabel,
@@ -14,7 +17,7 @@ import {
   orderPaymentStatusLabel,
   orderPaymentStatusVariant,
 } from '@/lib/vendor-commerce-ui'
-import { selectCommerceDeliveryOffer } from '@/services/customer-commerce-service'
+import { initiateMtnMomoPayment, selectCommerceDeliveryOffer } from '@/services/customer-commerce-service'
 import { formatLrdFromCents } from '@/utils/delivery-schemas'
 
 export function OrderDetailPage() {
@@ -23,8 +26,14 @@ export function OrderDetailPage() {
   const { data: order, isLoading, error } = useCustomerOrder(id, user?.id)
   const { data: store } = useStoreBrief(order?.vendor_company_id)
   const { data: deliveryStatus } = useCommerceOrderDeliveryStatus(order?.id)
+  const { data: latestAttempt } = useLatestPaymentAttemptForOrder(
+    order?.payment_method === 'mtn_momo' ? order.id : undefined,
+  )
   const queryClient = useQueryClient()
   const [selectError, setSelectError] = useState<string | null>(null)
+  const [retryMsisdn, setRetryMsisdn] = useState('')
+  const [retrying, setRetrying] = useState(false)
+  const [retryError, setRetryError] = useState<string | null>(null)
 
   const selectOffer = useMutation({
     mutationFn: (offerId: string) => selectCommerceDeliveryOffer(order!.id, offerId),
@@ -73,6 +82,29 @@ export function OrderDetailPage() {
   }
 
   const chooseableOffers = (deliveryStatus?.offers ?? []).filter((o) => o.status === 'pending')
+  const selectedOffer = chooseableOffers.find((o) => o.is_selected)
+  // The final payable total only exists once a carrier offer is selected —
+  // see the Phase E2 migration header "PAYMENT TIMING." Before that, there
+  // is nothing yet to charge; the payment prompt does not appear.
+  const finalTotalCents = selectedOffer ? order!.subtotal_lrd_cents + selectedOffer.quoted_amount_lrd_cents : null
+
+  async function retryMtnPayment() {
+    setRetryError(null)
+    const msisdn = retryMsisdn || latestAttempt?.payer_msisdn || ''
+    if (msisdn.replace(/\D/g, '').length < 9) {
+      setRetryError('Enter a valid MTN MoMo number.')
+      return
+    }
+    setRetrying(true)
+    try {
+      await initiateMtnMomoPayment(order!.id, msisdn)
+      void queryClient.invalidateQueries({ queryKey: ['latest-payment-attempt', order!.id] })
+    } catch (err) {
+      setRetryError(parseSupabaseError(err))
+    } finally {
+      setRetrying(false)
+    }
+  }
 
   return (
     <div className="mx-auto min-h-screen max-w-lg space-y-5 p-4 pb-10">
@@ -96,6 +128,37 @@ export function OrderDetailPage() {
           Cash on Delivery — please have {formatLrdFromCents(order.total_lrd_cents)} ready when your order arrives
           {order.delivery_fee_lrd_cents > 0 ? ' (includes the delivery fee).' : '.'}
         </p>
+      )}
+      {order.payment_method === 'mtn_momo' && order.payment_status === 'pending_payment' && (
+        <div className="space-y-2">
+          {latestAttempt ? (
+            <MtnPaymentStatusPanel attemptId={latestAttempt.id} onRetry={retryMtnPayment} retrying={retrying} />
+          ) : selectedOffer && finalTotalCents !== null ? (
+            <Card>
+              <CardContent className="space-y-3 pt-6">
+                <p className="text-sm">
+                  Pay <span className="font-semibold tabular-nums">{formatLrdFromCents(finalTotalCents)}</span> by MTN
+                  MoMo — goods {formatLrdFromCents(order.subtotal_lrd_cents)} + delivery{' '}
+                  {formatLrdFromCents(selectedOffer.quoted_amount_lrd_cents)}.
+                </p>
+                <Input
+                  inputMode="tel"
+                  placeholder="MTN MoMo number"
+                  value={retryMsisdn}
+                  onChange={(e) => setRetryMsisdn(e.target.value)}
+                />
+                <Button type="button" size="sm" onClick={() => void retryMtnPayment()} disabled={retrying}>
+                  {retrying ? 'Starting payment…' : 'Pay with MTN MoMo'}
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <p className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
+              Choose a carrier below to see your final total and pay by MTN MoMo.
+            </p>
+          )}
+          {retryError && <p className="text-sm text-red-600">{retryError}</p>}
+        </div>
       )}
       {order.fulfillment_status === 'vendor_rejected' && (
         <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">

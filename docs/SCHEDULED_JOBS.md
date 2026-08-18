@@ -19,6 +19,7 @@ Invoked by `jobs-scheduler` with service role:
 - Mark invoices `overdue`
 - Expire open marketplace requests/offers
 - Purge GPS samples older than 48h
+- Sweep MTN MoMo payment attempts stuck in `requesting` (>3 min) to `unknown` — never re-contacts the provider; see [MTN_MOMO_PAYMENTS.md](./MTN_MOMO_PAYMENTS.md)
 
 ## Secrets
 
@@ -32,6 +33,8 @@ Invoked by `jobs-scheduler` with service role:
 - `EMAIL_HTTP_ENDPOINT`, `EMAIL_HTTP_TOKEN`
 - `GUPSHUP_API_KEY`, `GUPSHUP_APP_NAME`, `GUPSHUP_SOURCE_NUMBER` — `whatsapp-dispatch` only. Missing any of these makes the function respond 503 rather than send — see [WHATSAPP.md](./WHATSAPP.md).
 - `GUPSHUP_WEBHOOK_SECRET` — `whatsapp-webhook` only; the token appended to the callback URL as `?token=...`.
+- `WINAGGREGATOR_MTN_SECRET_STRING`, `WINAGGREGATOR_MTN_COMPANY_NAME` — `mtn-collect` only. Missing either makes the function respond 503 before creating any payment attempt — see [MTN_MOMO_PAYMENTS.md](./MTN_MOMO_PAYMENTS.md).
+- `WINAGGREGATOR_MTN_BASE_URL` — optional override; defaults to `https://winaggregator-mtn.com/mtn/api/v1`.
 
 ### SMS provider notes (WinAggregator) — production-tested
 
@@ -52,4 +55,5 @@ npx supabase functions deploy email-dispatch
 npx supabase functions deploy auth-sms-hook --no-verify-jwt
 npx supabase functions deploy whatsapp-dispatch
 npx supabase functions deploy whatsapp-webhook --no-verify-jwt
+npx supabase functions deploy mtn-collect
 ```

@@ -36,6 +36,7 @@ export function StoreCheckoutPage() {
   const [locating, setLocating] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [paymentMethod, setPaymentMethod] = useState<'cod' | 'mtn_momo'>('cod')
 
   useEffect(() => {
     if (!user || !catalog || sync.status !== 'idle') return
@@ -65,6 +66,12 @@ export function StoreCheckoutPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, catalog, sync.status])
+
+  useEffect(() => {
+    if (catalog && !catalog.store.allow_cash_on_delivery) {
+      setPaymentMethod('mtn_momo')
+    }
+  }, [catalog])
 
   function useMyLocation() {
     if (!navigator.geolocation) return
@@ -96,9 +103,12 @@ export function StoreCheckoutPage() {
         deliveryLatitude: coords?.lat,
         deliveryLongitude: coords?.lng,
         deliveryInstructions: instructions.trim() || undefined,
-        paymentMethod: 'cod',
+        paymentMethod,
       })
       localCart.clear()
+      // MTN MoMo no longer charges here: the final payable amount (goods +
+      // delivery fee) isn't known until a carrier is selected. The order
+      // page prompts for payment once that happens — see MtnPaymentStatusPanel.
       navigate(`/orders/${order.id}`)
     } catch (err) {
       setSubmitError(parseSupabaseError(err))
@@ -231,20 +241,39 @@ export function StoreCheckoutPage() {
               <CardTitle>Payment</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {catalog.store.allow_cash_on_delivery ? (
-                <label className="flex items-center gap-2 rounded-lg border border-[var(--color-primary)] bg-[color-mix(in_oklab,var(--color-primary)_8%,white)] px-3 py-2 text-sm">
-                  <input type="radio" checked readOnly />
+              {catalog.store.allow_cash_on_delivery && (
+                <label
+                  className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${
+                    paymentMethod === 'cod'
+                      ? 'border-[var(--color-primary)] bg-[color-mix(in_oklab,var(--color-primary)_8%,white)]'
+                      : ''
+                  }`}
+                >
+                  <input type="radio" checked={paymentMethod === 'cod'} onChange={() => setPaymentMethod('cod')} />
                   Cash on Delivery — pay when your order arrives
                 </label>
-              ) : (
+              )}
+              <label
+                className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${
+                  paymentMethod === 'mtn_momo'
+                    ? 'border-[var(--color-primary)] bg-[color-mix(in_oklab,var(--color-primary)_8%,white)]'
+                    : ''
+                }`}
+              >
+                <input type="radio" checked={paymentMethod === 'mtn_momo'} onChange={() => setPaymentMethod('mtn_momo')} />
+                MTN MoMo
+              </label>
+              {paymentMethod === 'mtn_momo' && (
+                <p className="pl-1 text-xs text-[var(--color-muted)]">
+                  You&apos;ll be asked to pay by MTN MoMo once a carrier is assigned to your delivery, for the full
+                  order total (goods + delivery fee) — not before.
+                </p>
+              )}
+              {!catalog.store.allow_cash_on_delivery && paymentMethod === 'cod' && (
                 <p className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
                   This store isn&apos;t accepting Cash on Delivery orders right now.
                 </p>
               )}
-              <div className="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm text-[var(--color-muted)] opacity-60">
-                <input type="radio" disabled />
-                MTN MoMo — coming soon
-              </div>
               <div className="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm text-[var(--color-muted)] opacity-60">
                 <input type="radio" disabled />
                 Orange Money — coming soon
@@ -257,10 +286,10 @@ export function StoreCheckoutPage() {
           <Button
             type="button"
             className="w-full"
-            disabled={submitting || !catalog.store.allow_cash_on_delivery}
+            disabled={submitting || (paymentMethod === 'cod' && !catalog.store.allow_cash_on_delivery)}
             onClick={() => void placeOrder()}
           >
-            {submitting ? 'Placing order…' : 'Place order — Cash on Delivery'}
+            {submitting ? 'Placing order…' : paymentMethod === 'mtn_momo' ? 'Place order' : 'Place order — Cash on Delivery'}
           </Button>
         </>
       )}

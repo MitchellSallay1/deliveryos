@@ -135,11 +135,21 @@ BEGIN
   INSERT INTO b5_assertions VALUES ('cod_accepted_honestly_unpaid', true);
 
   -- =========================================================================
-  -- 2) Online-payment order: cannot be accepted before payment confirmation;
-  --    becomes acceptable once the internal webhook seam marks it paid.
-  --    submit_commerce_order rejects mtn_momo/orange_money as not yet
-  --    usable, so this fixture is built via a direct INSERT bypassing it —
-  --    the intended shape for when the future MoMo integration is enabled.
+  -- 2) Online-payment (mtn_momo) order: Commerce Phase E2's financial-flow
+  --    correction moved the online-payment gate OFF vendor acceptance and
+  --    onto carrier acceptance (accept_marketplace_offer), because in the
+  --    real production flow the final payable amount (subtotal + selected
+  --    carrier fee) isn't known until AFTER the vendor has already
+  --    accepted/prepared/readied the order and a carrier has been selected.
+  --    So vendor_accept_commerce_order now treats mtn_momo exactly like
+  --    COD — it proceeds honestly unpaid, and payment_status stays
+  --    pending_payment through acceptance. See
+  --    commerce_order_payment_eligible_for_acceptance and
+  --    commerce_phase_e2.test.sql (which tests the live payment_not_confirmed
+  --    gate at accept_marketplace_offer, and the full
+  --    submit -> select carrier -> MTN payment -> carrier acceptance path)
+  --    for the payment gate itself. This fixture is built via a direct
+  --    INSERT so it stays independent of Phase E2's live payment RPCs.
   -- =========================================================================
   PERFORM set_config('request.jwt.claim.sub', v_customer1::text, true);
   v_cart := (public.get_or_create_cart(v_vendor_a)).id;
@@ -154,32 +164,22 @@ BEGIN
     'mtn_momo', 15000, 15000
   ) RETURNING * INTO v_order_online;
 
-  v_forbidden := false;
-  BEGIN
-    PERFORM set_config('request.jwt.claim.sub', v_vendor_a_owner::text, true);
-    PERFORM public.vendor_accept_commerce_order(v_order_online.id);
-    PERFORM set_config('request.jwt.claim.sub', '', true);
-  EXCEPTION WHEN OTHERS THEN
-    PERFORM set_config('request.jwt.claim.sub', '', true);
-    IF SQLERRM NOT LIKE '%payment_not_confirmed%' THEN RAISE; END IF;
-    v_forbidden := true;
-  END;
-  IF NOT v_forbidden THEN
-    RAISE EXCEPTION 'expected an unconfirmed mtn_momo order to be rejected with payment_not_confirmed';
-  END IF;
-
-  -- Internal webhook seam (invoked here as the elevated test role, standing
-  -- in for the future service-role payment webhook) confirms payment.
-  v_order_online := public.mark_commerce_order_paid(v_order_online.id);
-  IF v_order_online.payment_status <> 'paid' THEN
-    RAISE EXCEPTION 'expected mark_commerce_order_paid to set payment_status = paid, got %', v_order_online.payment_status;
-  END IF;
-
   PERFORM set_config('request.jwt.claim.sub', v_vendor_a_owner::text, true);
   v_order_online := public.vendor_accept_commerce_order(v_order_online.id);
   PERFORM set_config('request.jwt.claim.sub', '', true);
   IF v_order_online.fulfillment_status <> 'vendor_accepted' THEN
-    RAISE EXCEPTION 'expected the now-paid online order to be accepted, got %', v_order_online.fulfillment_status;
+    RAISE EXCEPTION 'expected an unpaid mtn_momo order to be acceptable by the vendor (Phase E2: gate moved to carrier acceptance), got %', v_order_online.fulfillment_status;
+  END IF;
+  IF v_order_online.payment_status <> 'pending_payment' THEN
+    RAISE EXCEPTION 'expected vendor acceptance to NEVER fabricate payment_status = paid for an mtn_momo order, got %', v_order_online.payment_status;
+  END IF;
+
+  -- Internal webhook seam (invoked here as the elevated test role, standing
+  -- in for the future service-role payment webhook / Phase E2's
+  -- record_payment_attempt_result) confirms payment.
+  v_order_online := public.mark_commerce_order_paid(v_order_online.id);
+  IF v_order_online.payment_status <> 'paid' THEN
+    RAISE EXCEPTION 'expected mark_commerce_order_paid to set payment_status = paid, got %', v_order_online.payment_status;
   END IF;
 
   INSERT INTO b5_assertions VALUES ('online_payment_requires_confirmation', true);
@@ -234,12 +234,14 @@ BEGIN
     RAISE EXCEPTION 'expected an unrecognized payment method string to be rejected with invalid_payment_method';
   END IF;
 
+  -- mtn_momo is now a live payment method (Commerce Phase E2) — orange_money
+  -- remains modeled-but-not-yet-usable and must still be rejected the same way.
   v_forbidden := false;
   BEGIN
     PERFORM set_config('request.jwt.claim.sub', v_customer1::text, true);
     v_cart := (public.get_or_create_cart(v_vendor_a)).id;
     PERFORM public.add_cart_item(v_cart, v_product, 1, '[]'::JSONB);
-    PERFORM public.submit_commerce_order(v_cart, 'B5 Customer One', NULL, NULL, NULL, NULL, NULL, 'mtn_momo');
+    PERFORM public.submit_commerce_order(v_cart, 'B5 Customer One', NULL, NULL, NULL, NULL, NULL, 'orange_money');
     PERFORM set_config('request.jwt.claim.sub', '', true);
   EXCEPTION WHEN OTHERS THEN
     PERFORM set_config('request.jwt.claim.sub', '', true);
@@ -247,7 +249,7 @@ BEGIN
     v_forbidden := true;
   END;
   IF NOT v_forbidden THEN
-    RAISE EXCEPTION 'expected mtn_momo to be rejected with payment_method_not_available (modeled, not yet usable)';
+    RAISE EXCEPTION 'expected orange_money to be rejected with payment_method_not_available (modeled, not yet usable)';
   END IF;
 
   INSERT INTO b5_assertions VALUES ('invalid_and_unavailable_payment_methods_rejected', true);
@@ -414,9 +416,9 @@ END;
 $$;
 
 SELECT ok((SELECT ok FROM b5_assertions WHERE key = 'cod_accepted_honestly_unpaid'), 'a COD order can be accepted by its vendor while genuinely still pending_payment — never fabricated as paid');
-SELECT ok((SELECT ok FROM b5_assertions WHERE key = 'online_payment_requires_confirmation'), 'an online-payment order cannot be accepted before payment_status=paid, and becomes acceptable once the internal webhook seam confirms it');
+SELECT ok((SELECT ok FROM b5_assertions WHERE key = 'online_payment_requires_confirmation'), 'Phase E2: vendor acceptance no longer gates on payment_status for mtn_momo (matches COD, proceeds honestly unpaid) — the online-payment gate moved to carrier acceptance; the internal webhook seam still confirms payment separately');
 SELECT ok((SELECT ok FROM b5_assertions WHERE key = 'vendor_cod_disabled_blocks_submission'), 'a vendor that has not enabled allow_cash_on_delivery rejects a COD order submission with cod_not_allowed');
-SELECT ok((SELECT ok FROM b5_assertions WHERE key = 'invalid_and_unavailable_payment_methods_rejected'), 'an unrecognized payment method is rejected with invalid_payment_method, and a modeled-but-not-yet-usable method (mtn_momo) is rejected with payment_method_not_available');
+SELECT ok((SELECT ok FROM b5_assertions WHERE key = 'invalid_and_unavailable_payment_methods_rejected'), 'an unrecognized payment method is rejected with invalid_payment_method, and a modeled-but-not-yet-usable method (orange_money) is rejected with payment_method_not_available');
 SELECT ok((SELECT ok FROM b5_assertions WHERE key = 'cross_vendor_payment_config_tamper_blocked'), 'a different vendor cannot change another vendor''s COD setting via the RPC or a raw UPDATE');
 SELECT ok((SELECT ok FROM b5_assertions WHERE key = 'customer_cannot_self_mark_payment'), 'mark_commerce_order_paid/mark_commerce_order_payment_failed remain unreachable by any authenticated client');
 SELECT ok((SELECT ok FROM b5_assertions WHERE key = 'eligibility_helper_not_directly_callable'), 'commerce_order_payment_eligible_for_acceptance is an internal helper — no authenticated client, including the owning vendor, can call it directly');

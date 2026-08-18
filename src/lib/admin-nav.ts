@@ -83,6 +83,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
       { to: '/admin/invoices', label: 'Invoices', icon: FileText },
       { to: '/admin/payments', label: 'Payments', icon: CreditCard },
       { to: '/admin/commerce-finance', label: 'Commerce Finance', icon: Wallet },
+      { to: '/admin/commerce-payments', label: 'MTN MoMo Payments', icon: CreditCard },
       { to: '/admin/commerce-fee-rules', label: 'Commerce Fee Rules', icon: Percent },
     ],
   },

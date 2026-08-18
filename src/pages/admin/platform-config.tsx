@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { CommandButton, CommandCard, CommandCardBody, CommandCardHeader, CommandInput, SectionHeader } from '@/components/admin/control-tower'
+import { CommandButton, CommandCard, CommandCardBody, CommandCardHeader, CommandInput, SectionHeader, StatusChip } from '@/components/admin/control-tower'
 import { fetchPlatformSettings, setPlatformSetting } from '@/services/platform-settings-service'
 import { parseSupabaseError } from '@/lib/supabase-errors'
 
@@ -100,10 +100,68 @@ function PublicAppUrlSetting() {
   )
 }
 
+function MtnMomoActivationSetting() {
+  const qc = useQueryClient()
+  const { data: settings, isLoading } = useQuery({
+    queryKey: ['admin-platform-settings'],
+    queryFn: fetchPlatformSettings,
+  })
+  const current = settings?.find((s) => s.key === 'mtn_momo_collections_enabled')
+  const enabled = current?.value === 'true'
+  const [message, setMessage] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  const save = useMutation({
+    mutationFn: (v: 'true' | 'false') => setPlatformSetting('mtn_momo_collections_enabled', v),
+    onSuccess: (_, v) => {
+      setMessage(v === 'true' ? 'MTN MoMo collection is now live.' : 'MTN MoMo collection is now disabled.')
+      setError(null)
+      void qc.invalidateQueries({ queryKey: ['admin-platform-settings'] })
+    },
+    onError: (err) => {
+      setMessage(null)
+      setError(parseSupabaseError(err))
+    },
+  })
+
+  return (
+    <CommandCard>
+      <CommandCardHeader
+        title="MTN MoMo collection — real-money kill switch"
+        description="Defaults to disabled. While disabled, no new MTN MoMo payment attempt can be created — by any customer, through any path, including a direct API call — regardless of a store's own commerce settings. Existing pending/unknown/successful payment attempts remain visible and reconcilable at /admin/commerce-payments either way. Requires WINAGGREGATOR_MTN_* credentials to also be configured — enabling this alone does not collect money if credentials are missing."
+      />
+      <CommandCardBody className="space-y-3">
+        {isLoading ? (
+          <p className="text-sm text-zinc-500">Loading…</p>
+        ) : (
+          <>
+            <div className="flex items-center gap-3">
+              <StatusChip color={enabled ? 'green' : 'gray'} label={enabled ? 'live' : 'disabled'} />
+              <CommandButton
+                variant={enabled ? 'outline' : 'primary'}
+                disabled={save.isPending}
+                onClick={() => void save.mutateAsync(enabled ? 'false' : 'true')}
+              >
+                {save.isPending ? 'Saving…' : enabled ? 'Disable MTN MoMo collection' : 'Enable MTN MoMo collection'}
+              </CommandButton>
+              {message && <span className="text-sm text-emerald-400">{message}</span>}
+              {error && <span className="text-sm text-red-400">{error}</span>}
+            </div>
+            {current?.updated_at && (
+              <p className="text-xs text-zinc-500">Last changed {new Date(current.updated_at).toLocaleString()}</p>
+            )}
+          </>
+        )}
+      </CommandCardBody>
+    </CommandCard>
+  )
+}
+
 export function AdminConfigurationPage() {
   return (
     <div className="space-y-4">
       <SectionHeader eyebrow="Platform configuration" title="Configuration" className="mb-0" />
+      <MtnMomoActivationSetting />
       <PublicAppUrlSetting />
       <CommandCard>
         <CommandCardHeader description="Safe display settings only. Trial duration and feature gates remain database-driven via plans. Secrets are not editable here." />

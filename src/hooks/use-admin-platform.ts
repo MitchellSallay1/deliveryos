@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import {
   adminGlobalSearch,
   adminSupportLookup,
+  listAdminPaymentAttemptsPage,
   fetchAdminDeliveryDetail,
   fetchAdminMapPoints,
   fetchCommandCenter,
@@ -125,6 +126,21 @@ export function useAdminApiKeysPage(
     queryKey: ['admin', 'api-keys', params],
     queryFn: () => listAdminApiKeysPage(params),
     enabled,
+  })
+}
+
+export function useAdminPaymentAttemptsPage(
+  params: Parameters<typeof listAdminPaymentAttemptsPage>[0],
+  enabled = true,
+) {
+  return useQuery({
+    queryKey: ['admin', 'payment-attempts', params],
+    queryFn: () => listAdminPaymentAttemptsPage(params),
+    enabled,
+    // Reconciliation-relevant rows change server-side (background provider
+    // calls, the scheduler's stuck-attempt sweep) without any local
+    // action to invalidate on — a short poll keeps the queue current.
+    refetchInterval: 15_000,
   })
 }
 
